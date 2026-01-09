@@ -16,6 +16,7 @@ export function createUploader(config: UploadConfig) {
     maxFiles = 5,
     folderConfig,
     cleanupOnError = true,
+    partialUpload = false,
     compressImage: shouldCompress = false,
     imageQuality = 80,
   } = config;
@@ -34,58 +35,117 @@ export function createUploader(config: UploadConfig) {
   const upload = multer({
     storage,
     fileFilter: (req, file, cb) => {
+      // Initialize rejectedFiles array if it doesn't exist
+      if (!req.rejectedFiles) {
+        (req as any).rejectedFiles = [];
+      }
+
       if (!validateExtension(file, allowedExtensions)) {
+        // If partialUpload is enabled, track and skip invalid files
+        if (partialUpload && multiple) {
+          (req as any).rejectedFiles.push({
+            originalname: file.originalname,
+            reason: "File extension not allowed",
+            mimetype: file.mimetype,
+            size: file.size,
+          });
+          return cb(null, false); // Skip this file but continue
+        }
         return cb(new Error("File extension not allowed"));
       }
       cb(null, true);
     },
+    // limits: {
+    //   fileSize: sizeConfig?.defaultMB
+    //     ? sizeConfig.defaultMB * 1024 * 1024
+    //     : undefined,
+    // },
+
     limits: {
-      fileSize: sizeConfig?.defaultMB
-        ? sizeConfig.defaultMB * 1024 * 1024
-        : undefined,
+      fileSize:
+        sizeConfig?.enabled && sizeConfig?.perExtensionMB
+          ? undefined // Don't set global limit when using per-extension
+          : sizeConfig?.defaultMB
+          ? sizeConfig.defaultMB * 1024 * 1024
+          : undefined,
     },
   });
 
-  const wrap = (middleware: any) => async (req: Request, res: Response, next: NextFunction) => {
-    middleware(req, res, async (err: any) => {
-      if (err) {
-        if (cleanupOnError) {
-          cleanupFile(req.file);
-          cleanupFiles(req.files as Express.Multer.File[]);
+  const wrap =
+    (middleware: any) =>
+    async (req: Request, res: Response, next: NextFunction) => {
+      middleware(req, res, async (err: any) => {
+        if (err) {
+          if (cleanupOnError) {
+            cleanupFile(req.file);
+            cleanupFiles(req.files as Express.Multer.File[]);
+          }
+          return next(err);
         }
-        return next(err);
-      }
 
-      try {
-        const files = req.file ? [req.file] : (req.files as Express.Multer.File[]) || [];
+        try {
+          const files = req.file
+            ? [req.file]
+            : (req.files as Express.Multer.File[]) || [];
+          const validFiles: Express.Multer.File[] = [];
 
-        for (const file of files) {
-          const maxSize = resolveFileSizeLimit(file, sizeConfig);
+          // Get existing rejected files from fileFilter or initialize
+          const rejectedFiles: Array<{
+            originalname: string;
+            reason: string;
+            mimetype?: string;
+            size?: number;
+          }> = (req as any).rejectedFiles || [];
 
-          if (file.size > maxSize) {
-            throw new Error(`File ${file.originalname} exceeds size limit`);
+          for (const file of files) {
+            const maxSize = resolveFileSizeLimit(file, sizeConfig);
+
+            if (file.size > maxSize) {
+              if (partialUpload && multiple) {
+                // Track rejected file and cleanup
+                rejectedFiles.push({
+                  originalname: file.originalname,
+                  reason: `File exceeds size limit of ${Math.round(
+                    maxSize / (1024 * 1024)
+                  )}MB`,
+                  mimetype: file.mimetype,
+                  size: file.size,
+                });
+                cleanupFile(file);
+                continue; // Skip to next file
+              } else {
+                throw new Error(`File ${file.originalname} exceeds size limit`);
+              }
+            }
+
+            if (shouldCompress) {
+              await compressImage(file, imageQuality);
+            }
+
+            validFiles.push(file);
           }
 
-          if (shouldCompress) {
-            await compressImage(file, imageQuality);
+          // Update req.files with only valid files and attach all rejected files info
+          if (multiple && partialUpload) {
+            req.files = validFiles;
+            (req as any).rejectedFiles = rejectedFiles;
           }
-        }
 
-        // Attach cleanup handler for controller errors if cleanupOnError is enabled
-        if (cleanupOnError) {
-          attachCleanupHandler(req, res);
-        }
+          // Attach cleanup handler for controller errors if cleanupOnError is enabled
+          if (cleanupOnError) {
+            attachCleanupHandler(req, res);
+          }
 
-        next();
-      } catch (e) {
-        if (cleanupOnError) {
-          cleanupFile(req.file);
-          cleanupFiles(req.files as Express.Multer.File[]);
+          next();
+        } catch (e) {
+          if (cleanupOnError) {
+            cleanupFile(req.file);
+            cleanupFiles(req.files as Express.Multer.File[]);
+          }
+          next(e);
         }
-        next(e);
-      }
-    });
-  };
+      });
+    };
 
   return {
     single: () => wrap(upload.single(fieldName)),
@@ -106,13 +166,13 @@ function attachCleanupHandler(req: Request, res: Response) {
   let responseSent = false;
 
   // Override status method to capture status code
-  res.status = function(code: number) {
+  res.status = function (code: number) {
     statusCode = code;
     return originalStatus(code);
   } as any;
 
   // Override json method
-  res.json = function(body: any) {
+  res.json = function (body: any) {
     responseSent = true;
     if (statusCode && statusCode >= 400) {
       performCleanup(req);
@@ -121,7 +181,7 @@ function attachCleanupHandler(req: Request, res: Response) {
   } as any;
 
   // Override send method
-  res.send = function(body: any) {
+  res.send = function (body: any) {
     responseSent = true;
     if (statusCode && statusCode >= 400) {
       performCleanup(req);
@@ -131,7 +191,7 @@ function attachCleanupHandler(req: Request, res: Response) {
 
   // Handle errors passed to next()
   const originalOn = res.on.bind(res);
-  res.on('finish', () => {
+  res.on("finish", () => {
     // Check if response was an error based on status code
     if (res.statusCode >= 400 && !responseSent) {
       performCleanup(req);
