@@ -5,6 +5,7 @@ import { validateExtension } from "./validators.js";
 import { resolveUploadPath, resolveFileSizeLimit } from "./helpers.js";
 import { cleanupFile, cleanupFiles } from "./cleanup.js";
 import { compressImage } from "./compress.js";
+import { FileSizeExceededError, InvalidFileExtensionError } from "./error.js";
 
 export function createUploader(config: UploadConfig) {
   const {
@@ -51,16 +52,20 @@ export function createUploader(config: UploadConfig) {
           });
           return cb(null, false); // Skip this file but continue
         }
-        return cb(new Error("File extension not allowed"));
+
+        // Throw custom error
+        const error = new InvalidFileExtensionError({
+          message: `File extension not allowed: ${file.originalname}`,
+          info: {
+            filename: file.originalname,
+            mimetype: file.mimetype,
+            allowedExtensions: allowedExtensions,
+          },
+        });
+        return cb(error as any);
       }
       cb(null, true);
     },
-    // limits: {
-    //   fileSize: sizeConfig?.defaultMB
-    //     ? sizeConfig.defaultMB * 1024 * 1024
-    //     : undefined,
-    // },
-
     limits: {
       fileSize:
         sizeConfig?.enabled && sizeConfig?.perExtensionMB
@@ -114,7 +119,20 @@ export function createUploader(config: UploadConfig) {
                 cleanupFile(file);
                 continue; // Skip to next file
               } else {
-                throw new Error(`File ${file.originalname} exceeds size limit`);
+                // Throw custom error
+                throw new FileSizeExceededError({
+                  message: `File ${
+                    file.originalname
+                  } exceeds size limit of ${Math.round(
+                    maxSize / (1024 * 1024)
+                  )}MB`,
+                  info: {
+                    filename: file.originalname,
+                    fileSize: file.size,
+                    maxSize: maxSize,
+                    maxSizeMB: Math.round(maxSize / (1024 * 1024)),
+                  },
+                });
               }
             }
 
