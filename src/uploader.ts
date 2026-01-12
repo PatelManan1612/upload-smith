@@ -1,11 +1,19 @@
 import multer from "multer";
 import { Request, Response, NextFunction } from "express";
 import { UploadConfig } from "./types.js";
-import { validateExtension } from "./validators.js";
-import { resolveUploadPath, resolveFileSizeLimit } from "./helpers.js";
+import { validateExtension, validateUploaderConfig } from "./validators.js";
+import {
+  resolveUploadPath,
+  resolveFileSizeLimit,
+  mapMulterError,
+} from "./helpers.js";
 import { cleanupFile, cleanupFiles } from "./cleanup.js";
 import { compressImage } from "./compress.js";
-import { FileSizeExceededError, InvalidFileExtensionError } from "./error.js";
+import {
+  FileSizeExceededError,
+  InvalidFileExtensionError,
+  NoFileUploadedError,
+} from "./error.js";
 
 export function createUploader(config: UploadConfig) {
   const {
@@ -21,6 +29,8 @@ export function createUploader(config: UploadConfig) {
     compressImage: shouldCompress = false,
     imageQuality = 80,
   } = config;
+
+   validateUploaderConfig(config);
 
   const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -85,10 +95,19 @@ export function createUploader(config: UploadConfig) {
             cleanupFile(req.file);
             cleanupFiles(req.files as Express.Multer.File[]);
           }
-          return next(err);
+          return next(
+            mapMulterError(err, fieldName, {
+              maxFiles,
+            })
+          );
         }
 
         try {
+          if (!req.file && (!req.files || req.files.length === 0)) {
+            throw new NoFileUploadedError({
+              info: { fieldName },
+            });
+          }
           const files = req.file
             ? [req.file]
             : (req.files as Express.Multer.File[]) || [];

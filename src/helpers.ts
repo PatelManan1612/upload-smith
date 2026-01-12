@@ -1,12 +1,21 @@
 import fs from "fs";
 import path from "path";
 import { FolderConfig, SizeConfig } from "./types.js";
-import { getExtension } from "./validators.js";
+import multer from "multer";
+import {
+  FileSizeExceededError,
+  InvalidFieldNameError,
+  TooManyFilesError,
+} from "./error.js";
 
 export function ensureDir(dir: string) {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
+}
+
+export function getExtension(file: Express.Multer.File): string {
+  return path.extname(file.originalname).replace(".", "").toLowerCase();
 }
 
 export function resolveUploadPath(
@@ -44,4 +53,57 @@ export function resolveFileSizeLimit(
   const limit = sizeConfig.perExtensionMB?.[ext] ?? sizeConfig.defaultMB ?? 5;
 
   return limit * 1024 * 1024;
+}
+
+function getMulterLimit(err: any): number | undefined {
+  return typeof err?.limit === "number" ? err.limit : undefined;
+}
+
+export function mapMulterError(
+  err: unknown,
+  fieldName?: string,
+  options?: {
+    maxFiles?: number;
+  }
+): Error {
+  if (!(err instanceof multer.MulterError)) {
+    return err as Error;
+  }
+
+  switch (err.code) {
+    case "LIMIT_FILE_SIZE":
+      return new FileSizeExceededError({
+        info: {
+          maxSize: getMulterLimit(err),
+        },
+      });
+
+    case "LIMIT_FILE_COUNT":
+      return new TooManyFilesError({
+        info: {
+          maxFiles: getMulterLimit(err),
+        },
+      });
+
+    case "LIMIT_UNEXPECTED_FILE":
+      // 🔥 IMPORTANT LOGIC
+      if (fieldName === err?.field && options?.maxFiles) {
+        return new TooManyFilesError({
+          info: {
+            maxFiles: options?.maxFiles,
+            receivedField: err.field,
+          },
+        });
+      }
+
+      return new InvalidFieldNameError({
+        info: {
+          expectedField: fieldName,
+          receivedField: err.field,
+        },
+      });
+
+    default:
+      return err as Error;
+  }
 }
