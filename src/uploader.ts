@@ -30,7 +30,7 @@ export function createUploader(config: UploadConfig) {
     imageQuality = 80,
   } = config;
 
-   validateUploaderConfig(config);
+  validateUploaderConfig(config);
 
   const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -187,6 +187,7 @@ export function createUploader(config: UploadConfig) {
   return {
     single: () => wrap(upload.single(fieldName)),
     multiple: () => wrap(upload.array(fieldName, maxFiles)),
+    config: config,
   };
 }
 

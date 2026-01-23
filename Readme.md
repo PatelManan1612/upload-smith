@@ -1,6 +1,6 @@
 # Upload Smith
 
-**A powerful, config-driven file upload utility for Express.js built on top of Multer with advanced features.**
+**A powerful, config-driven file upload utility for Express.js built on top of Multer with advanced features including URL downloads.**
 
 [![npm version](https://img.shields.io/npm/v/upload-smith.svg)](https://www.npmjs.com/package/upload-smith)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -9,8 +9,10 @@
 ## ✨ Features
 
 - 🎯 **Simple Configuration** - One config object for all upload settings
+- 📥 **URL Download Support** - Download and process files from URLs with full validation
+- 🔒 **Domain Control** - Whitelist/blacklist domains for URL uploads
 - 📁 **Smart Folder Organization** - Organize by extension or custom categories
-- 🔒 **Extension Validation** - Whitelist allowed file types
+- 🔐 **Extension Validation** - Whitelist allowed file types
 - 📏 **Per-Extension Size Limits** - Different size limits for different file types
 - 🖼️ **Automatic Image Compression** - Compress images on upload with quality control
 - 🧹 **Automatic Cleanup** - Delete files on errors (multer, validation, or controller errors)
@@ -26,6 +28,8 @@ npm install upload-smith
 ```
 
 ## 🚀 Quick Start
+
+### Basic File Upload
 
 ```javascript
 import express from "express";
@@ -50,9 +54,61 @@ app.post("/upload", uploader.single(), (req, res) => {
 app.listen(3000);
 ```
 
+### URL Upload (New! 🎉)
+
+```javascript
+import express from "express";
+import { createUploader, downloadFromUrl } from "upload-smith";
+
+const app = express();
+app.use(express.json());
+
+const uploader = createUploader({
+  fieldName: "file",
+  allowedExtensions: ["jpg", "png", "webp"],
+  compressImage: true,
+  imageQuality: 80,
+  folderConfig: {
+    basePath: "uploads/images",
+  },
+  urlUpload: {
+    enabled: true,
+    maxSizeMB: 20,
+    allowedDomains: ["imgur.com", "picsum.photos"],
+  },
+});
+
+app.post("/upload-from-url", async (req, res) => {
+  try {
+    const result = await downloadFromUrl(req.body.url, uploader.config);
+    res.json({ success: true, file: result });
+  } catch (error) {
+    res.status(error.status || 500).json({
+      error: error.message,
+      code: error.code,
+    });
+  }
+});
+```
+
 ## 📖 Documentation
 
-### Basic Configuration
+### Table of Contents
+- [Basic Configuration](#basic-configuration)
+- [URL Upload Feature](#url-upload-feature-new-)
+- [Per-Extension Size Limits](#per-extension-size-limits)
+- [Image Compression](#image-compression)
+- [Folder Organization](#folder-organization)
+- [Custom Filenames](#custom-filenames)
+- [Multiple Files](#multiple-files)
+- [Partial Uploads](#partial-uploads-new-)
+- [Complete Configuration Options](#-complete-configuration-options)
+- [Error Types Reference](#-error-types-reference)
+- [Real-World Examples](#-real-world-examples)
+
+---
+
+## Basic Configuration
 
 ```javascript
 const uploader = createUploader({
@@ -64,7 +120,234 @@ const uploader = createUploader({
 });
 ```
 
-### Per-Extension Size Limits
+---
+
+## URL Upload Feature (NEW! 🎉)
+
+Download and process files directly from URLs with the same validation and processing as regular uploads.
+
+### Basic URL Upload
+
+```javascript
+import { createUploader, downloadFromUrl } from "upload-smith";
+
+const uploader = createUploader({
+  fieldName: "file",
+  allowedExtensions: ["jpg", "png", "webp"],
+  folderConfig: {
+    basePath: "uploads/url-downloads",
+  },
+  urlUpload: {
+    enabled: true,
+    maxSizeMB: 20,
+    timeout: 30000, // 30 seconds
+  },
+});
+
+app.post("/download-image", async (req, res) => {
+  const { url } = req.body;
+
+  try {
+    const result = await downloadFromUrl(url, uploader.config);
+    
+    res.json({
+      success: true,
+      file: {
+        filename: result.filename,
+        path: result.path,
+        size: result.size,
+        mimetype: result.mimetype,
+      },
+    });
+  } catch (error) {
+    res.status(error.status || 500).json({
+      error: error.message,
+      code: error.code,
+    });
+  }
+});
+```
+
+### Domain Whitelist (Allow Only Trusted Domains)
+
+```javascript
+const uploader = createUploader({
+  fieldName: "file",
+  allowedExtensions: ["jpg", "png"],
+  urlUpload: {
+    enabled: true,
+    allowedDomains: [
+      "imgur.com",        // Allows imgur.com and i.imgur.com
+      "picsum.photos",    // Allows picsum.photos
+      "unsplash.com",     // Allows unsplash.com and images.unsplash.com
+    ],
+  },
+});
+
+// ✅ Allowed: https://i.imgur.com/abc123.jpg
+// ✅ Allowed: https://picsum.photos/200/300
+// ❌ Blocked: https://malicious-site.com/image.jpg (not in whitelist)
+```
+
+### Domain Blacklist (Block Specific Domains)
+
+```javascript
+const uploader = createUploader({
+  fieldName: "file",
+  allowedExtensions: ["jpg", "png"],
+  urlUpload: {
+    enabled: true,
+    blockedDomains: [
+      "malicious.com",
+      "spam-site.net",
+      "untrusted.org",
+    ],
+    // No allowedDomains = allow all domains EXCEPT blocked ones
+  },
+});
+
+// ✅ Allowed: https://imgur.com/abc123.jpg
+// ✅ Allowed: https://any-other-site.com/image.png
+// ❌ Blocked: https://malicious.com/image.jpg
+```
+
+### Combined Whitelist + Blacklist (Maximum Security)
+
+```javascript
+const uploader = createUploader({
+  fieldName: "file",
+  allowedExtensions: ["jpg", "png"],
+  urlUpload: {
+    enabled: true,
+    // Only these domains allowed
+    allowedDomains: [
+      "imgur.com",
+      "picsum.photos",
+      "cdn.example.com",
+    ],
+    // Block specific subdomains even if parent is whitelisted
+    blockedDomains: [
+      "spam.cdn.example.com", // Block this subdomain
+    ],
+  },
+});
+
+// Blacklist is checked FIRST, then whitelist
+// ✅ Allowed: https://imgur.com/image.jpg (whitelisted, not blacklisted)
+// ✅ Allowed: https://cdn.example.com/file.png (whitelisted, not blacklisted)
+// ❌ Blocked: https://spam.cdn.example.com/bad.jpg (blacklisted)
+// ❌ Blocked: https://unsplash.com/photo.jpg (not whitelisted)
+```
+
+### URL Upload with Compression
+
+```javascript
+const uploader = createUploader({
+  fieldName: "file",
+  allowedExtensions: ["jpg", "png", "webp"],
+  compressImage: true,      // Enable compression for URL downloads
+  imageQuality: 70,         // 70% quality
+  folderConfig: {
+    basePath: "uploads/compressed",
+  },
+  urlUpload: {
+    enabled: true,
+    maxSizeMB: 25,
+    allowedDomains: ["imgur.com", "picsum.photos"],
+  },
+});
+
+// Downloaded images are automatically compressed!
+```
+
+### Advanced URL Upload Configuration
+
+```javascript
+const uploader = createUploader({
+  fieldName: "file",
+  allowedExtensions: ["jpg", "png", "pdf"],
+  urlUpload: {
+    enabled: true,
+    maxSizeMB: 50,              // Max download size
+    timeout: 60000,             // 60 second timeout
+    maxRedirects: 5,            // Follow up to 5 redirects
+    followRedirects: true,      // Enable redirect following
+    userAgent: "Mozilla/5.0",   // Custom User-Agent
+    headers: {
+      "Accept": "image/*",      // Custom headers
+      "X-Custom": "value",
+    },
+    allowedDomains: [
+      "trusted-cdn.com",
+    ],
+    blockedDomains: [
+      "banned-site.com",
+    ],
+  },
+});
+```
+
+### URL Upload Error Handling
+
+```javascript
+app.post("/download", async (req, res) => {
+  try {
+    const result = await downloadFromUrl(req.body.url, uploader.config);
+    res.json({ success: true, file: result });
+  } catch (error) {
+    // Handle specific errors
+    if (error.code === "DOMAIN_BLOCKED") {
+      return res.status(403).json({
+        error: "This domain is not allowed",
+        domain: error.info.domain,
+      });
+    }
+
+    if (error.code === "DOMAIN_NOT_ALLOWED") {
+      return res.status(403).json({
+        error: "Only whitelisted domains are allowed",
+        allowedDomains: error.info.allowedDomains,
+      });
+    }
+
+    if (error.code === "FILE_SIZE_EXCEEDED") {
+      return res.status(413).json({
+        error: "File is too large",
+        maxSize: error.info.maxSizeMB + "MB",
+      });
+    }
+
+    if (error.code === "UPLOAD_TIMEOUT") {
+      return res.status(408).json({
+        error: "Download timed out",
+      });
+    }
+
+    // Generic error
+    res.status(error.status || 500).json({
+      error: error.message,
+    });
+  }
+});
+```
+
+### Testing URL Uploads
+
+```bash
+# Download from URL
+curl -X POST http://localhost:3000/download-image \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://picsum.photos/800/600"}'
+
+# Test blocked domain
+curl -X POST http://localhost:3000/download-image \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://malicious.com/image.jpg"}'
+```
+
+---
+
+## Per-Extension Size Limits
 
 ```javascript
 const uploader = createUploader({
@@ -74,32 +357,36 @@ const uploader = createUploader({
     enabled: true,
     defaultMB: 5, // Fallback for unlisted extensions
     perExtensionMB: {
-      jpg: 10, // 10MB for images
+      jpg: 10,  // 10MB for images
       png: 10,
-      pdf: 20, // 20MB for PDFs
+      pdf: 20,  // 20MB for PDFs
       docx: 15, // 15MB for Word docs
     },
   },
 });
 ```
 
-### Image Compression
+---
+
+## Image Compression
 
 ```javascript
 const uploader = createUploader({
   fieldName: "photos",
   allowedExtensions: ["jpg", "png", "webp"],
   compressImage: true, // Enable compression
-  imageQuality: 80, // 80% quality (1-100)
+  imageQuality: 80,    // 80% quality (1-100)
   sizeConfig: {
     defaultMB: 10,
   },
 });
 ```
 
-**Note:** Only actual image files (jpg, jpeg, png, webp, gif, tiff) are compressed. Other file types are unaffected.
+**Note:** Compression works for both regular uploads AND URL downloads. Only actual image files (jpg, jpeg, png, webp, gif, tiff) are compressed. Other file types are unaffected.
 
-### Folder Organization
+---
+
+## Folder Organization
 
 **By Extension:**
 
@@ -151,7 +438,9 @@ const uploader = createUploader({
 });
 ```
 
-### Custom Filenames
+---
+
+## Custom Filenames
 
 ```javascript
 const uploader = createUploader({
@@ -167,7 +456,9 @@ const uploader = createUploader({
 
 **Note:** `req.body` is not available in the `filename` function. Use `req.headers`, `req.query`, or authentication middleware instead.
 
-### Multiple Files
+---
+
+## Multiple Files
 
 ```javascript
 const uploader = createUploader({
@@ -185,7 +476,9 @@ app.post("/upload", uploader.multiple(), (req, res) => {
 });
 ```
 
-### Partial Uploads (NEW! 🎉)
+---
+
+## Partial Uploads (NEW! 🎉)
 
 Save valid files even when some fail validation:
 
@@ -219,17 +512,19 @@ app.post("/upload", uploader.multiple(), (req, res) => {
 **Without `partialUpload`:** Upload 5 files, 1 invalid → ❌ ALL 5 rejected  
 **With `partialUpload`:** Upload 5 files, 1 invalid → ✅ 4 saved, 1 rejected with reason
 
+---
+
 ## 🎯 Complete Configuration Options
 
 ```typescript
 const uploader = createUploader({
-  // REQUIRED
+  // ==================== REQUIRED ====================
   fieldName: string,
 
-  // FILE VALIDATION
+  // ==================== FILE VALIDATION ====================
   allowedExtensions?: string[],
 
-  // SIZE LIMITS
+  // ==================== SIZE LIMITS ====================
   sizeConfig?: {
     enabled?: boolean,              // Enable per-extension limits
     defaultMB?: number,             // Default/fallback size in MB
@@ -238,14 +533,27 @@ const uploader = createUploader({
     }
   },
 
-  // FILENAME
+  // ==================== URL UPLOAD (NEW!) ====================
+  urlUpload?: {
+    enabled: boolean,               // Enable URL downloads
+    maxSizeMB?: number,             // Max download size (default: 50MB)
+    timeout?: number,               // Timeout in ms (default: 30000)
+    allowedDomains?: string[],      // Whitelist of allowed domains
+    blockedDomains?: string[],      // Blacklist of blocked domains
+    maxRedirects?: number,          // Max redirects (default: 5)
+    followRedirects?: boolean,      // Follow redirects (default: true)
+    userAgent?: string,             // Custom User-Agent
+    headers?: Record<string, string> // Custom HTTP headers
+  },
+
+  // ==================== FILENAME ====================
   filename?: (req, file) => string, // Custom filename function
 
-  // MULTIPLE FILES
+  // ==================== MULTIPLE FILES ====================
   multiple?: boolean,               // Allow multiple files
   maxFiles?: number,                // Max files when multiple=true
 
-  // FOLDER ORGANIZATION
+  // ==================== FOLDER ORGANIZATION ====================
   folderConfig?: {
     basePath?: string,              // Base directory
     autoCreate?: boolean,           // Auto-create directories
@@ -256,70 +564,57 @@ const uploader = createUploader({
     }
   },
 
-  // ERROR HANDLING
+  // ==================== ERROR HANDLING ====================
   cleanupOnError?: boolean,         // Auto-delete files on errors
 
-  // PARTIAL UPLOADS
+  // ==================== PARTIAL UPLOADS ====================
   partialUpload?: boolean,          // Save valid files, reject invalid
 
-  // IMAGE COMPRESSION
-  compressImage?: boolean,          // Compress images
+  // ==================== IMAGE COMPRESSION ====================
+  compressImage?: boolean,          // Compress images (works for uploads & URL downloads)
   imageQuality?: number,            // Compression quality (1-100)
 });
 ```
 
-This single section will save you **a lot of support questions**.
-
 ---
 
-### Error Types Reference
-
-You already have rich custom errors — documenting them increases trust.
-
-Example:
-
-````md
-## 🚨 Error Types
+## 🚨 Error Types Reference
 
 Upload Smith throws structured errors with consistent shape.
 
-### Common Errors
+### URL Upload Errors
 
-| Error                       | When it occurs                |
-| --------------------------- | ----------------------------- |
-| `InvalidConfigurationError` | Invalid uploader setup        |
-| `InvalidFileExtensionError` | File type not allowed         |
-| `FileSizeExceededError`     | File exceeds size limit       |
-| `TooManyFilesError`         | More than `maxFiles` uploaded |
-| `NoFileUploadedError`       | No file sent in request       |
+| Error | Code | Status | When it occurs |
+|-------|------|--------|----------------|
+| `DomainBlockedError` | `DOMAIN_BLOCKED` | 403 | Domain is in blocklist |
+| `DomainNotAllowedError` | `DOMAIN_NOT_ALLOWED` | 403 | Domain not in whitelist |
+| `InvalidUrlError` | `INVALID_URL` | 400 | Malformed URL or invalid protocol |
+| `TooManyRedirectsError` | `TOO_MANY_REDIRECTS` | 502 | Exceeded max redirects |
+| `UploadTimeoutError` | `UPLOAD_TIMEOUT` | 408 | Download timed out |
+| `HttpError` | `HTTP_ERROR` | varies | Non-200 HTTP response |
+| `NetworkError` | `NETWORK_ERROR` | 502 | Network/connection failure |
+
+### Regular Upload Errors
+
+| Error | Code | Status | When it occurs |
+|-------|------|--------|----------------|
+| `InvalidConfigurationError` | `INVALID_CONFIGURATION` | 500 | Invalid uploader setup |
+| `InvalidFileExtensionError` | `INVALID_FILE_EXTENSION` | 400 | File type not allowed |
+| `FileSizeExceededError` | `FILE_SIZE_EXCEEDED` | 413 | File exceeds size limit |
+| `TooManyFilesError` | `TOO_MANY_FILES` | 400 | More than `maxFiles` uploaded |
+| `NoFileUploadedError` | `NO_FILE_UPLOADED` | 400 | No file sent in request |
 
 All errors include:
+- `message` - Human-readable error message
+- `code` - Machine-readable error code
+- `status` - HTTP status code
+- `info` - Additional context (optional)
 
-- `type`
-- `code`
-- `status`
-- optional `info`
-
-## ⚠️ Configuration Errors (Important)
-
-Upload Smith validates its configuration **at startup**.
-
-If an invalid configuration is detected (e.g. conflicting options),
-an `InvalidConfigurationError` is thrown immediately and the app will fail to start.
-
-This is intentional and follows **fail-fast principles** used by professional libraries.
-
-### Example
-```js
-createUploader({
-  fieldName: 'files',
-  partialUpload: true, // ❌ invalid without multiple:true
-});
-
+---
 
 ## 💡 Real-World Examples
 
-### Profile Picture Upload
+### Profile Picture Upload (with URL support)
 
 ```javascript
 const profileUploader = createUploader({
@@ -331,13 +626,28 @@ const profileUploader = createUploader({
   folderConfig: {
     basePath: "uploads/profiles",
   },
+  urlUpload: {
+    enabled: true,
+    maxSizeMB: 5,
+    allowedDomains: ["gravatar.com", "imgur.com"],
+  },
 });
 
-app.post("/profile", profileUploader.single(), (req, res) => {
+// Regular file upload
+app.post("/profile/upload", profileUploader.single(), (req, res) => {
   res.json({ profilePic: req.file });
 });
+
+// URL upload
+app.post("/profile/from-url", async (req, res) => {
+  try {
+    const result = await downloadFromUrl(req.body.url, profileUploader.config);
+    res.json({ profilePic: result });
+  } catch (error) {
+    res.status(error.status || 500).json({ error: error.message });
+  }
+});
 ```
-````
 
 ### Document Management System
 
@@ -375,7 +685,7 @@ app.post("/documents", documentUploader.multiple(), (req, res) => {
 });
 ```
 
-### Media Gallery
+### Media Gallery (with URL import)
 
 ```javascript
 const galleryUploader = createUploader({
@@ -405,15 +715,37 @@ const galleryUploader = createUploader({
       mp4: "videos",
     },
   },
+  urlUpload: {
+    enabled: true,
+    maxSizeMB: 100,
+    allowedDomains: [
+      "imgur.com",
+      "giphy.com",
+      "youtube.com",
+    ],
+  },
 });
 
-app.post("/gallery", galleryUploader.multiple(), (req, res) => {
+// Regular uploads
+app.post("/gallery/upload", galleryUploader.multiple(), (req, res) => {
   res.json({
     uploaded: req.files,
     rejected: req.rejectedFiles || [],
   });
 });
+
+// Import from URL
+app.post("/gallery/import", async (req, res) => {
+  try {
+    const result = await downloadFromUrl(req.body.url, galleryUploader.config);
+    res.json({ success: true, media: result });
+  } catch (error) {
+    res.status(error.status || 500).json({ error: error.message });
+  }
+});
 ```
+
+---
 
 ## 🔧 TypeScript Support
 
@@ -437,7 +769,11 @@ declare global {
 export {};
 ```
 
+---
+
 ## 🧪 Testing
+
+### Regular File Uploads
 
 ```bash
 # Single file
@@ -454,6 +790,22 @@ curl -H "x-user-id: 12345" \
      -F "file=@photo.jpg" \
      http://localhost:3000/upload
 ```
+
+### URL Uploads
+
+```bash
+# Download from URL
+curl -X POST http://localhost:3000/download \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://picsum.photos/800/600"}'
+
+# Test domain validation
+curl -X POST http://localhost:3000/download \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://unsplash.com/photo.jpg"}'
+```
+
+---
 
 ## 📊 File Object Structure
 
@@ -472,10 +824,41 @@ After upload, `req.file` or `req.files` contains:
 }
 ```
 
+After URL download, `downloadFromUrl` returns:
+
+```javascript
+{
+  filename: 'photo-compressed.jpg',
+  path: 'uploads/images/photo-compressed.jpg',
+  size: 524288,
+  mimetype: 'image/jpeg',
+  originalUrl: 'https://example.com/photo.jpg',
+  finalUrl: 'https://cdn.example.com/photo.jpg' // After redirects
+}
+```
+
+---
+
 ## 🚨 Error Handling
 
 ```javascript
 app.use((err, req, res, next) => {
+  // URL upload errors
+  if (err.code === "DOMAIN_BLOCKED") {
+    return res.status(403).json({
+      error: "Domain is blocked",
+      domain: err.info.domain,
+    });
+  }
+
+  if (err.code === "DOMAIN_NOT_ALLOWED") {
+    return res.status(403).json({
+      error: "Domain not allowed",
+      allowedDomains: err.info.allowedDomains,
+    });
+  }
+
+  // Regular upload errors
   if (err.code === "LIMIT_FILE_SIZE") {
     return res.status(400).json({ error: "File too large" });
   }
@@ -488,12 +871,14 @@ app.use((err, req, res, next) => {
 });
 ```
 
+---
+
 ## 🔄 Automatic Cleanup
 
 Files are automatically deleted when `cleanupOnError: true` (default) in these scenarios:
 
 1. **Multer validation errors** (invalid extension, file too large)
-2. **Custom validation errors** (size limits, etc.)
+2. **Custom validation errors** (size limits, domain restrictions)
 3. **Controller errors** (when response status ≥ 400)
 
 ```javascript
@@ -507,6 +892,8 @@ app.post("/upload", uploader.single(), (req, res) => {
 });
 ```
 
+---
+
 ## 📚 API Reference
 
 ### `createUploader(config: UploadConfig)`
@@ -514,9 +901,30 @@ app.post("/upload", uploader.single(), (req, res) => {
 Creates an uploader instance.
 
 **Returns:**
-
 - `single()` - Middleware for single file upload
 - `multiple()` - Middleware for multiple file uploads
+- `config` - The resolved configuration object
+
+### `downloadFromUrl(url: string, config: UploadConfig)`
+
+Downloads a file from URL with validation and processing.
+
+**Parameters:**
+- `url` - The URL to download from
+- `config` - The uploader configuration object
+
+**Returns:** `Promise<UrlDownloadResult>`
+
+```typescript
+interface UrlDownloadResult {
+  filename: string;      // Final filename (may include -compressed suffix)
+  path: string;          // Full path to downloaded file
+  size: number;          // Final file size in bytes
+  mimetype: string;      // MIME type from Content-Type header
+  originalUrl: string;   // Original URL provided
+  finalUrl: string;      // Final URL after redirects
+}
+```
 
 ### `asyncHandler(fn: Function)`
 
@@ -535,22 +943,31 @@ app.post(
 );
 ```
 
+---
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
+---
+
 ## 📄 License
 
 MIT © [Manan Patel](https://github.com/mananzealousweb)
+
+---
 
 ## 🔗 Links
 
 - [npm Package](https://www.npmjs.com/package/upload-smith)
 - [GitHub Repository](https://github.com/mananzealousweb/upload-smith)
 - [Report Issues](https://github.com/mananzealousweb/upload-smith/issues)
+- [Changelog](CHANGELOG.md)
+
+---
 
 ## 🙏 Acknowledgments
 
-Built on top of the excellent [Multer](https://github.com/expressjs/multer) library.
+Built on top of the excellent [Multer](https://github.com/expressjs/multer) library and [Sharp](https://github.com/lovell/sharp) for image processing.
 
-Made by [Manan Patel](https://github.com/mananzealousweb)
+Made with ❤️ by [Manan Patel](https://github.com/mananzealousweb)

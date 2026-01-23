@@ -28,6 +28,35 @@ export interface SizeConfig {
   perExtensionMB?: Record<string, number>;
 }
 
+export interface UrlUploadConfig {
+  /** Enable URL upload support (default: false) */
+  enabled: boolean;
+
+  /** Maximum file size for URL downloads in MB (default: 50) */
+  maxSizeMB?: number;
+
+  /** Request timeout in milliseconds (default: 30000 - 30 seconds) */
+  timeout?: number;
+
+  /** Allowed domains for URL uploads (whitelist). If empty, all domains allowed. */
+  allowedDomains?: string[];
+
+  /** Blocked domains for URL uploads (blacklist). If empty, all domains allowed. */
+  blockedDomains?: string[];
+
+  /** Follow HTTP redirects (default: true) */
+  followRedirects?: boolean;
+
+  /** Maximum number of redirects to follow (default: 5) */
+  maxRedirects?: number;
+
+  /** Custom headers for URL requests */
+  headers?: Record<string, string>;
+
+  /** User agent string (default: 'upload-smith') */
+  userAgent?: string;
+}
+
 export interface UploadConfig {
   /** Field name in the form data */
   fieldName: string;
@@ -66,6 +95,9 @@ export interface UploadConfig {
 
   /** Image compression quality (1-100) (default: 80) */
   imageQuality?: number;
+
+  /** URL upload configuration (enables downloading from URLs) */
+  urlUpload?: UrlUploadConfig;
 }
 
 // TypeScript declaration extension for upload-smith
