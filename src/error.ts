@@ -148,6 +148,47 @@ export const UPLOAD_ERRORS = {
     description:
       "The HTTP request to download the file failed with an error status.",
   },
+  CLOUD_STORAGE_CONFIG_ERROR: {
+    type: "CONFIGURATION_ERROR",
+    code: "CLOUD_STORAGE_CONFIG_ERROR",
+    status: 500,
+    message: "Invalid cloud storage configuration.",
+  },
+
+  CLOUD_STORAGE_CONNECTION_ERROR: {
+    type: "CLOUD_STORAGE_ERROR",
+    code: "CLOUD_STORAGE_CONNECTION_ERROR",
+    status: 500,
+    message: "Failed to connect to cloud storage.",
+  },
+
+  CLOUD_STORAGE_UPLOAD_ERROR: {
+    type: "CLOUD_STORAGE_ERROR",
+    code: "CLOUD_STORAGE_UPLOAD_ERROR",
+    status: 500,
+    message: "Failed to upload file to cloud storage.",
+  },
+
+  CLOUD_STORAGE_PERMISSION_ERROR: {
+    type: "CLOUD_STORAGE_ERROR",
+    code: "CLOUD_STORAGE_PERMISSION_ERROR",
+    status: 403,
+    message: "Permission denied for cloud storage operation.",
+  },
+
+  CLOUD_STORAGE_NOT_FOUND: {
+    type: "CLOUD_STORAGE_ERROR",
+    code: "CLOUD_STORAGE_NOT_FOUND",
+    status: 404,
+    message: "Cloud storage resource not found.",
+  },
+
+  CLOUD_SDK_NOT_INSTALLED: {
+    type: "CONFIGURATION_ERROR",
+    code: "CLOUD_SDK_NOT_INSTALLED",
+    status: 500,
+    message: "Required cloud storage SDK is not installed.",
+  },
 } as const;
 
 export type UploadErrorCode = keyof typeof UPLOAD_ERRORS;
@@ -499,5 +540,119 @@ export class HttpError extends UploadError {
       info: overrides?.info,
     });
     this.name = "HttpError";
+  }
+}
+
+/**
+ * Cloud storage configuration error
+ */
+export class CloudStorageConfigError extends UploadError {
+  constructor(overrides?: Partial<UploadErrorInfo>) {
+    super({
+      type: overrides?.type || UPLOAD_ERRORS.CLOUD_STORAGE_CONFIG_ERROR.type,
+      code: overrides?.code || UPLOAD_ERRORS.CLOUD_STORAGE_CONFIG_ERROR.code,
+      status:
+        overrides?.status || UPLOAD_ERRORS.CLOUD_STORAGE_CONFIG_ERROR.status,
+      message:
+        overrides?.message || UPLOAD_ERRORS.CLOUD_STORAGE_CONFIG_ERROR.message,
+      info: overrides?.info,
+    });
+    this.name = "CloudStorageConfigError";
+  }
+}
+
+/**
+ * Cloud storage connection error
+ */
+export class CloudStorageConnectionError extends UploadError {
+  constructor(overrides?: Partial<UploadErrorInfo>) {
+    super({
+      type:
+        overrides?.type || UPLOAD_ERRORS.CLOUD_STORAGE_CONNECTION_ERROR.type,
+      code:
+        overrides?.code || UPLOAD_ERRORS.CLOUD_STORAGE_CONNECTION_ERROR.code,
+      status:
+        overrides?.status ||
+        UPLOAD_ERRORS.CLOUD_STORAGE_CONNECTION_ERROR.status,
+      message:
+        overrides?.message ||
+        UPLOAD_ERRORS.CLOUD_STORAGE_CONNECTION_ERROR.message,
+      info: overrides?.info,
+    });
+    this.name = "CloudStorageConnectionError";
+  }
+}
+
+/**
+ * Cloud storage upload error
+ */
+export class CloudStorageUploadError extends UploadError {
+  constructor(overrides?: Partial<UploadErrorInfo>) {
+    super({
+      type: overrides?.type || UPLOAD_ERRORS.CLOUD_STORAGE_UPLOAD_ERROR.type,
+      code: overrides?.code || UPLOAD_ERRORS.CLOUD_STORAGE_UPLOAD_ERROR.code,
+      status:
+        overrides?.status || UPLOAD_ERRORS.CLOUD_STORAGE_UPLOAD_ERROR.status,
+      message:
+        overrides?.message || UPLOAD_ERRORS.CLOUD_STORAGE_UPLOAD_ERROR.message,
+      info: overrides?.info,
+    });
+    this.name = "CloudStorageUploadError";
+  }
+}
+
+/**
+ * Cloud storage permission error
+ */
+export class CloudStoragePermissionError extends UploadError {
+  constructor(overrides?: Partial<UploadErrorInfo>) {
+    super({
+      type:
+        overrides?.type || UPLOAD_ERRORS.CLOUD_STORAGE_PERMISSION_ERROR.type,
+      code:
+        overrides?.code || UPLOAD_ERRORS.CLOUD_STORAGE_PERMISSION_ERROR.code,
+      status:
+        overrides?.status ||
+        UPLOAD_ERRORS.CLOUD_STORAGE_PERMISSION_ERROR.status,
+      message:
+        overrides?.message ||
+        UPLOAD_ERRORS.CLOUD_STORAGE_PERMISSION_ERROR.message,
+      info: overrides?.info,
+    });
+    this.name = "CloudStoragePermissionError";
+  }
+}
+
+/**
+ * Cloud storage not found error
+ */
+export class CloudStorageNotFoundError extends UploadError {
+  constructor(overrides?: Partial<UploadErrorInfo>) {
+    super({
+      type: overrides?.type || UPLOAD_ERRORS.CLOUD_STORAGE_NOT_FOUND.type,
+      code: overrides?.code || UPLOAD_ERRORS.CLOUD_STORAGE_NOT_FOUND.code,
+      status: overrides?.status || UPLOAD_ERRORS.CLOUD_STORAGE_NOT_FOUND.status,
+      message:
+        overrides?.message || UPLOAD_ERRORS.CLOUD_STORAGE_NOT_FOUND.message,
+      info: overrides?.info,
+    });
+    this.name = "CloudStorageNotFoundError";
+  }
+}
+
+/**
+ * Cloud SDK not installed error
+ */
+export class CloudSdkNotInstalledError extends UploadError {
+  constructor(overrides?: Partial<UploadErrorInfo>) {
+    super({
+      type: overrides?.type || UPLOAD_ERRORS.CLOUD_SDK_NOT_INSTALLED.type,
+      code: overrides?.code || UPLOAD_ERRORS.CLOUD_SDK_NOT_INSTALLED.code,
+      status: overrides?.status || UPLOAD_ERRORS.CLOUD_SDK_NOT_INSTALLED.status,
+      message:
+        overrides?.message || UPLOAD_ERRORS.CLOUD_SDK_NOT_INSTALLED.message,
+      info: overrides?.info,
+    });
+    this.name = "CloudSdkNotInstalledError";
   }
 }
