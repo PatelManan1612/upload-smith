@@ -55,7 +55,7 @@ export function resolveFileSizeLimit(
   return limit * 1024 * 1024;
 }
 
-function getMulterLimit(err: any): number | undefined {
+export function getMulterLimit(err: any): number | undefined {
   return typeof err?.limit === "number" ? err.limit : undefined;
 }
 
