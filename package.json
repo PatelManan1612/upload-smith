@@ -1,6 +1,6 @@
 {
   "name": "upload-smith",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "description": "Config-driven Multer utility for easy file uploads with extension-based validation, auto folder management, size limits, cleanup, and optional image compression",
   "type": "module",
   "main": "./dist/cjs/index.js",
