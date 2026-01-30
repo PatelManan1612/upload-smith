@@ -16,6 +16,22 @@ import {
   CloudStoragePermissionError,
 } from "../error.js";
 
+function normalizeAzureBlobName(input: string): string {
+  const normalized = input
+    .replace(/\\/g, "/") // Windows → URL
+    .replace(/^\/+/, "") // remove leading /
+    .replace(/\/{2,}/g, "/") // collapse //
+    .trim();
+
+  if (!normalized) {
+    throw new CloudStorageConfigError({
+      message: "Invalid Azure blob name: resolved to empty path",
+      info: { provider: "azure", input },
+    });
+  }
+
+  return normalized;
+}
 /**
  * Azure Blob Storage Provider
  *
@@ -64,19 +80,21 @@ export class AzureBlobProvider implements ICloudStorageProvider {
         await import("@azure/storage-blob");
 
       if (this.config.connectionString) {
-        // Using connection string
         this.blobServiceClient = BlobServiceClient.fromConnectionString(
           this.config.connectionString,
         );
       } else {
-        // Using account name and key
         const sharedKeyCredential = new StorageSharedKeyCredential(
-          this.config.accountName,
-          this.config.accountKey,
+          this.config.accountName!,
+          this.config.accountKey!,
         );
 
+        const endpoint =
+          this.config.endpoint ??
+          `https://${this.config.accountName}.blob.core.windows.net`;
+
         this.blobServiceClient = new BlobServiceClient(
-          `https://${this.config.accountName}.blob.core.windows.net`,
+          endpoint,
           sharedKeyCredential,
         );
       }
@@ -119,9 +137,11 @@ export class AzureBlobProvider implements ICloudStorageProvider {
       const filename = path.basename(filePath);
 
       // Normalize path (Azure doesn't use leading slash)
-      const blobName = destinationPath.startsWith("/")
-        ? destinationPath.slice(1)
-        : destinationPath;
+      // const blobName = destinationPath.startsWith("/")
+      //   ? destinationPath.slice(1)
+      //   : destinationPath;
+
+      const blobName = normalizeAzureBlobName(destinationPath);
 
       // Get block blob client
       const blockBlobClient = this.containerClient.getBlockBlobClient(blobName);
@@ -221,10 +241,15 @@ export class AzureBlobProvider implements ICloudStorageProvider {
    * Get public URL for Azure blob
    */
   getPublicUrl(cloudPath: string): string {
-    const blobName = cloudPath.startsWith("/") ? cloudPath.slice(1) : cloudPath;
+    // const blobName = cloudPath.startsWith("/") ? cloudPath.slice(1) : cloudPath;
+    const blobName = normalizeAzureBlobName(cloudPath);
     const accountName = this.config.accountName;
     const containerName = this.config.containerName;
 
+    // ✅ CUSTOM ENDPOINT (private endpoint / emulator)
+    if (this.config.endpoint) {
+      return `${this.config.endpoint}/${containerName}/${blobName}`;
+    }
     return `https://${accountName}.blob.core.windows.net/${containerName}/${blobName}`;
   }
 
@@ -232,7 +257,8 @@ export class AzureBlobProvider implements ICloudStorageProvider {
    * Get CDN URL if Azure CDN is configured
    */
   getCdnUrl(cloudPath: string): string {
-    const blobName = cloudPath.startsWith("/") ? cloudPath.slice(1) : cloudPath;
+    // const blobName = cloudPath.startsWith("/") ? cloudPath.slice(1) : cloudPath;
+    const blobName = normalizeAzureBlobName(cloudPath);
 
     if (this.config.cdnDomain) {
       const domain = this.config.cdnDomain.replace(/\/$/, "");

@@ -3,7 +3,11 @@
 
 import fs from "fs";
 import path from "path";
-import { GcsConfig, CloudUploadResult, ICloudStorageProvider } from "../types.js";
+import {
+  GcsConfig,
+  CloudUploadResult,
+  ICloudStorageProvider,
+} from "../types.js";
 import {
   CloudStorageConfigError,
   CloudStorageUploadError,
@@ -45,12 +49,13 @@ export class GcsProvider implements ICloudStorageProvider {
         info: { provider: "gcs" },
       });
     }
-
-    if (!this.config.keyFilename && !this.config.credentials) {
-      throw new CloudStorageConfigError({
-        message: "GCS keyFilename or credentials are required",
-        info: { provider: "gcs" },
-      });
+    if (!this.config.apiEndpoint) {
+      if (!this.config.keyFilename && !this.config.credentials) {
+        throw new CloudStorageConfigError({
+          message: "GCS keyFilename or credentials are required",
+          info: { provider: "gcs" },
+        });
+      }
     }
   }
 
@@ -64,6 +69,10 @@ export class GcsProvider implements ICloudStorageProvider {
       const clientConfig: any = {
         projectId: this.config.projectId,
       };
+
+      if (this.config.apiEndpoint) {
+        clientConfig.apiEndpoint = this.config.apiEndpoint;
+      }
 
       if (this.config.keyFilename) {
         clientConfig.keyFilename = this.config.keyFilename;
@@ -207,6 +216,17 @@ export class GcsProvider implements ICloudStorageProvider {
    */
   getPublicUrl(cloudPath: string): string {
     const path = cloudPath.startsWith("/") ? cloudPath.slice(1) : cloudPath;
+    // if (this.config.apiEndpoint) {
+    //   const endpoint = this.config.apiEndpoint.replace(/\/$/, "");
+    //   return `${endpoint}/${this.config.bucket}/${path}`;
+    // }
+
+    if (this.config.apiEndpoint) {
+      const endpoint = this.config.apiEndpoint.replace(/\/$/, "");
+      return `${endpoint}/download/storage/v1/b/${this.config.bucket}/o/${encodeURIComponent(
+        path,
+      )}?alt=media`;
+    }
     return `https://storage.googleapis.com/${this.config.bucket}/${path}`;
   }
 

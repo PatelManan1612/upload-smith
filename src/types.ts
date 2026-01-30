@@ -114,6 +114,8 @@ export interface GcsConfig {
     private_key: string;
   };
 
+  apiEndpoint?: string;
+
   /** GCS Bucket name */
   bucket: string;
 
@@ -130,18 +132,32 @@ export interface GcsConfig {
   cdnDomain?: string;
 }
 
+export type AzureAuthConfig =
+  | {
+      connectionString: string;
+      accountName?: never;
+      accountKey?: never;
+    }
+  | {
+      connectionString?: never;
+      accountName: string;
+      accountKey: string;
+    };
+
 /**
  * Azure Blob Storage Configuration
  */
-export interface AzureConfig {
+export type AzureConfig = AzureAuthConfig & {
   /** Azure Storage Account Name */
-  accountName: string;
+  // accountName: string;
 
-  /** Azure Storage Account Key */
-  accountKey: string;
+  // /** Azure Storage Account Key */
+  // accountKey: string;
 
-  /** Or use full connection string */
-  connectionString?: string;
+  // /** Or use full connection string */
+  // connectionString?: string;
+
+  endpoint?: string;
 
   /** Container name (equivalent to bucket) */
   containerName: string;
@@ -160,7 +176,7 @@ export interface AzureConfig {
 
   /** Azure CDN domain (if CDN is enabled) */
   cdnDomain?: string;
-}
+};
 
 /**
  * Cloudinary Configuration

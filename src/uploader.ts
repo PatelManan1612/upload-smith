@@ -14,6 +14,7 @@ import {
   InvalidFileExtensionError,
   NoFileUploadedError,
 } from "./error.js";
+import { CloudStorageService } from "./cloudStorage.js";
 
 export function createUploader(config: UploadConfig) {
   const {
@@ -28,9 +29,16 @@ export function createUploader(config: UploadConfig) {
     partialUpload = false,
     compressImage: shouldCompress = false,
     imageQuality = 80,
+    cloudStorage: cloudStorageConfig, // ✅ NEW
   } = config;
 
   validateUploaderConfig(config);
+
+  // ✅ Initialize cloud storage service if enabled
+  let cloudStorage: CloudStorageService | null = null;
+  if (cloudStorageConfig?.enabled) {
+    cloudStorage = new CloudStorageService(cloudStorageConfig);
+  }
 
   const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -81,8 +89,8 @@ export function createUploader(config: UploadConfig) {
         sizeConfig?.enabled && sizeConfig?.perExtensionMB
           ? undefined // Don't set global limit when using per-extension
           : sizeConfig?.defaultMB
-          ? sizeConfig.defaultMB * 1024 * 1024
-          : undefined,
+            ? sizeConfig.defaultMB * 1024 * 1024
+            : undefined,
     },
   });
 
@@ -98,7 +106,7 @@ export function createUploader(config: UploadConfig) {
           return next(
             mapMulterError(err, fieldName, {
               maxFiles,
-            })
+            }),
           );
         }
 
@@ -130,7 +138,7 @@ export function createUploader(config: UploadConfig) {
                 rejectedFiles.push({
                   originalname: file.originalname,
                   reason: `File exceeds size limit of ${Math.round(
-                    maxSize / (1024 * 1024)
+                    maxSize / (1024 * 1024),
                   )}MB`,
                   mimetype: file.mimetype,
                   size: file.size,
@@ -143,7 +151,7 @@ export function createUploader(config: UploadConfig) {
                   message: `File ${
                     file.originalname
                   } exceeds size limit of ${Math.round(
-                    maxSize / (1024 * 1024)
+                    maxSize / (1024 * 1024),
                   )}MB`,
                   info: {
                     filename: file.originalname,
@@ -168,9 +176,48 @@ export function createUploader(config: UploadConfig) {
             (req as any).rejectedFiles = rejectedFiles;
           }
 
+          // ✅ NEW: Upload to cloud storage if enabled
+          if (cloudStorage) {
+            try {
+              const filesToUpload = req.file ? [req.file] : validFiles;
+
+              for (const file of filesToUpload) {
+                const result = await cloudStorage.uploadFile(file);
+
+                // Attach cloud info to file object
+                (file as any).cloudUrl = result.cloudUrl;
+                (file as any).cloudPath = result.cloudPath;
+                (file as any).publicUrl = result.publicUrl;
+                (file as any).cdnUrl = result.cdnUrl;
+                (file as any).cloudProvider = result.provider;
+                (file as any).cloudMetadata = result.metadata;
+              }
+            } catch (cloudError: any) {
+              console.error("Cloud upload error:", cloudError.message);
+
+              // Cleanup cloud files that were uploaded
+              if (cloudStorage.getTrackedUploadsCount() > 0) {
+                try {
+                  await cloudStorage.cleanupAllUploads();
+                  console.log("✅ Cloud files cleaned up after error");
+                } catch (cleanupErr) {
+                  console.error("❌ Cloud cleanup failed:", cleanupErr);
+                }
+              }
+
+              // Cleanup local files
+              if (cleanupOnError) {
+                cleanupFile(req.file);
+                cleanupFiles(req.files as Express.Multer.File[]);
+              }
+
+              throw cloudError;
+            }
+          }
+
           // Attach cleanup handler for controller errors if cleanupOnError is enabled
           if (cleanupOnError) {
-            attachCleanupHandler(req, res);
+            attachCleanupHandler(req, res, cloudStorage);
           }
 
           next();
@@ -188,13 +235,19 @@ export function createUploader(config: UploadConfig) {
     single: () => wrap(upload.single(fieldName)),
     multiple: () => wrap(upload.array(fieldName, maxFiles)),
     config: config,
+    cloudStorage, // ✅ Expose cloud storage service
   };
 }
 
 /**
  * Attaches a cleanup handler that will delete uploaded files if the controller fails
+ * ✅ ENHANCED: Now also cleans up cloud files
  */
-function attachCleanupHandler(req: Request, res: Response) {
+function attachCleanupHandler(
+  req: Request,
+  res: Response,
+  cloudStorage: CloudStorageService | null,
+) {
   // Store original res.status method
   const originalStatus = res.status.bind(res);
   const originalJson = res.json.bind(res);
@@ -202,6 +255,7 @@ function attachCleanupHandler(req: Request, res: Response) {
 
   let statusCode: number | undefined;
   let responseSent = false;
+  let cleanupPerformed = false; // ✅ Track if cleanup already done
 
   // Override status method to capture status code
   res.status = function (code: number) {
@@ -212,39 +266,72 @@ function attachCleanupHandler(req: Request, res: Response) {
   // Override json method
   res.json = function (body: any) {
     responseSent = true;
-    if (statusCode && statusCode >= 400) {
-      performCleanup(req);
+
+    // ✅ Only cleanup once
+    if (!cleanupPerformed) {
+      if (statusCode && statusCode >= 400) {
+        performCleanup(req, cloudStorage);
+        cleanupPerformed = true;
+      } else if (cloudStorage) {
+        cloudStorage.clearTracking();
+      }
     }
+
     return originalJson(body);
   } as any;
 
   // Override send method
   res.send = function (body: any) {
     responseSent = true;
-    if (statusCode && statusCode >= 400) {
-      performCleanup(req);
+
+    // ✅ Only cleanup once
+    if (!cleanupPerformed) {
+      if (statusCode && statusCode >= 400) {
+        performCleanup(req, cloudStorage);
+        cleanupPerformed = true;
+      } else if (cloudStorage) {
+        cloudStorage.clearTracking();
+      }
     }
+
     return originalSend(body);
   } as any;
 
   // Handle errors passed to next()
-  const originalOn = res.on.bind(res);
   res.on("finish", () => {
-    // Check if response was an error based on status code
-    if (res.statusCode >= 400 && !responseSent) {
-      performCleanup(req);
+    // ✅ Only cleanup if not already done
+    if (!cleanupPerformed) {
+      if (res.statusCode >= 400 && !responseSent) {
+        performCleanup(req, cloudStorage);
+        cleanupPerformed = true;
+      } else if (res.statusCode < 400 && cloudStorage) {
+        cloudStorage.clearTracking();
+      }
     }
   });
 }
 
 /**
  * Performs the actual cleanup of uploaded files
+ * ✅ ENHANCED: Now also cleans up cloud files
  */
-function performCleanup(req: Request) {
+function performCleanup(
+  req: Request,
+  cloudStorage: CloudStorageService | null,
+) {
+  // Cleanup local files
   if (req.file) {
     cleanupFile(req.file);
   }
   if (req.files) {
     cleanupFiles(req.files as Express.Multer.File[]);
+  }
+
+  // ✅ Cleanup cloud files
+  if (cloudStorage && cloudStorage.getTrackedUploadsCount() > 0) {
+    cloudStorage
+      .cleanupAllUploads()
+      .then(() => console.log("✅ Cloud files cleaned up"))
+      .catch((err) => console.error("❌ Cloud cleanup failed:", err.message));
   }
 }

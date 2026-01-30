@@ -23,6 +23,7 @@ import { CloudinaryProvider } from "./external-storage-services/cloudinary.servi
 export class CloudStorageService {
   private provider: ICloudStorageProvider;
   private config: CloudStorageConfig;
+  private uploadedFiles: Map<string, CloudUploadResult> = new Map();
 
   constructor(config: CloudStorageConfig) {
     this.config = config;
@@ -124,10 +125,7 @@ export class CloudStorageService {
   }
 
   /**
-   * Upload file to cloud storage
-   * @param file - Multer file object
-   * @param destinationPath - Optional custom path (uses file.path if not provided)
-   * @returns Cloud upload result
+   * Upload file to cloud storage with automatic cleanup tracking
    */
   async uploadFile(
     file: Express.Multer.File,
@@ -145,19 +143,14 @@ export class CloudStorageService {
       // Determine destination path
       let cloudPath: string;
       if (this.config.uploadPath) {
-        // Use custom upload path from config
         cloudPath = path.join(this.config.uploadPath, file.filename);
       } else if (destinationPath) {
-        // Use provided destination path
         cloudPath = destinationPath;
       } else {
-        // Use the file's relative path (preserving folder structure)
-        // Remove leading "uploads/" or similar base path
         const relativePath = file.path.split(path.sep).slice(1).join("/");
         cloudPath = relativePath || file.filename;
       }
 
-      // Normalize path separators for cloud storage (use forward slashes)
       cloudPath = cloudPath.replace(/\\/g, "/");
 
       // Upload to cloud
@@ -166,6 +159,9 @@ export class CloudStorageService {
         cloudPath,
         file.mimetype,
       );
+
+      // ✅ TRACK UPLOADED FILE FOR CLEANUP
+      this.uploadedFiles.set(file.filename, result);
 
       // Add metadata if configured
       if (this.config.metadata) {
@@ -183,7 +179,6 @@ export class CloudStorageService {
           console.warn(`Failed to delete local file: ${file.path}`, error);
         }
       } else {
-        // Include local path in result
         result.localPath = file.path;
       }
 
@@ -199,7 +194,6 @@ export class CloudStorageService {
         throw error;
       }
 
-      // Wrap other errors
       throw new CloudStorageUploadError({
         message: `Failed to upload file to cloud: ${error.message}`,
         info: {
@@ -212,7 +206,7 @@ export class CloudStorageService {
   }
 
   /**
-   * Upload multiple files to cloud storage
+   * Upload multiple files with tracking
    */
   async uploadFiles(
     files: Express.Multer.File[],
@@ -224,9 +218,8 @@ export class CloudStorageService {
         const result = await this.uploadFile(file);
         results.push(result);
       } catch (error) {
-        // Continue with other files on error
         console.error(`Failed to upload ${file.filename}:`, error);
-        throw error; // Or handle differently based on your needs
+        throw error;
       }
     }
 
@@ -234,7 +227,64 @@ export class CloudStorageService {
   }
 
   /**
-   * Delete file from cloud storage
+   * ✅ NEW: Cleanup all uploaded files (for error handling)
+   */
+  async cleanupAllUploads(): Promise<void> {
+    const errors: any[] = [];
+
+    for (const [filename, result] of this.uploadedFiles.entries()) {
+      try {
+        await this.provider.delete(result.cloudPath);
+        console.log(`✅ Cleaned up cloud file: ${filename}`);
+      } catch (error: any) {
+        console.error(`❌ Failed to cleanup ${filename}:`, error.message);
+        errors.push({ filename, error: error.message });
+      }
+    }
+
+    // Clear tracking
+    this.uploadedFiles.clear();
+
+    if (errors.length > 0) {
+      throw new CloudStorageUploadError({
+        message: `Failed to cleanup ${errors.length} files`,
+        info: { errors },
+      });
+    }
+  }
+
+  /**
+   * ✅ NEW: Cleanup specific file
+   */
+  async cleanupUpload(filename: string): Promise<void> {
+    const result = this.uploadedFiles.get(filename);
+
+    if (!result) {
+      console.warn(`File ${filename} not tracked for cleanup`);
+      return;
+    }
+
+    try {
+      await this.provider.delete(result.cloudPath);
+      this.uploadedFiles.delete(filename);
+      console.log(`✅ Cleaned up: ${filename}`);
+    } catch (error: any) {
+      throw new CloudStorageUploadError({
+        message: `Failed to cleanup ${filename}: ${error.message}`,
+        info: { filename, cloudPath: result.cloudPath },
+      });
+    }
+  }
+
+  /**
+   * ✅ NEW: Clear tracking without deletion
+   */
+  clearTracking(): void {
+    this.uploadedFiles.clear();
+  }
+
+  /**
+   * Delete file from cloud storage (existing method)
    */
   async deleteFile(cloudPath: string): Promise<void> {
     await this.provider.delete(cloudPath);
@@ -266,6 +316,13 @@ export class CloudStorageService {
    */
   getProvider(): ProviderType {
     return this.config.provider;
+  }
+
+  /**
+   * ✅ NEW: Get tracked uploads count
+   */
+  getTrackedUploadsCount(): number {
+    return this.uploadedFiles.size;
   }
 }
 
