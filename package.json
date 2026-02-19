@@ -45,10 +45,13 @@
     "@aws-sdk/client-s3": "^3.974.0",
     "@azure/storage-blob": "^12.30.0",
     "@google-cloud/storage": "^7.18.0",
+    "@types/ssh2": "^1.15.5",
+    "basic-ftp": "^5.1.0",
     "cloudinary": "^2.9.0",
     "express": "^5.2.1",
     "multer": "^2.0.2",
-    "sharp": "^0.34.5"
+    "sharp": "^0.34.5",
+    "ssh2": "^1.17.0"
   },
   "keywords": [
     "upload-smith",
