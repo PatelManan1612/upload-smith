@@ -345,3 +345,11 @@ export async function uploadToCloud(
   const service = new CloudStorageService(config);
   return service.uploadFile(file);
 }
+
+export async function deleteFromCloud(
+  cloudPath: string,
+  config: CloudStorageConfig,
+): Promise<void> {
+  const service = new CloudStorageService(config);
+  return service.deleteFile(cloudPath);
+}

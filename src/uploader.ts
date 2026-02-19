@@ -25,6 +25,7 @@ export function createUploader(config: UploadConfig) {
     multiple = false,
     maxFiles = 5,
     folderConfig,
+    requireFile = true,
     cleanupOnError = true,
     partialUpload = false,
     compressImage: shouldCompress = false,
@@ -111,11 +112,20 @@ export function createUploader(config: UploadConfig) {
         }
 
         try {
-          if (!req.file && (!req.files || req.files.length === 0)) {
-            throw new NoFileUploadedError({
-              info: { fieldName },
-            });
+          const hasFiles =
+            !!req.file || (Array.isArray(req.files) && req.files.length > 0);
+
+          if (!hasFiles) {
+            if (requireFile) {
+              throw new NoFileUploadedError({
+                info: { fieldName },
+              });
+            }
+
+            // If file not required → just continue
+            return next();
           }
+
           const files = req.file
             ? [req.file]
             : (req.files as Express.Multer.File[]) || [];

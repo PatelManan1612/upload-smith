@@ -371,6 +371,9 @@ export interface UploadConfig {
   /** Folder organization configuration */
   folderConfig?: FolderConfig;
 
+  /** To make the image field require */
+  requireFile?: boolean;
+
   /** Automatically cleanup uploaded files on errors (default: true)
    * This includes multer errors, validation errors, and controller errors
    */

@@ -6,6 +6,316 @@ This project follows **Semantic Versioning (SemVer)**.
 
 ---
 
+## [2.0.0] – 🚀 Major Release: Cloud Storage Integration
+
+🎉 **Major feature addition: Upload directly to AWS S3, Azure Blob Storage, Google Cloud Storage, and Cloudinary**
+
+### ✨ New Features
+
+#### ☁️ Cloud Storage Support (NEW!)
+
+Upload files directly to cloud storage providers with optional local copy:
+
+**Supported Providers:**
+
+- **AWS S3** - Amazon Simple Storage Service
+- **Azure Blob Storage** - Microsoft Azure cloud storage
+- **Google Cloud Storage (GCS)** - Google Cloud Platform storage
+- **Cloudinary** - Media management platform
+
+#### 🔧 Cloud Storage Configuration
+
+```typescript
+cloudStorage: {
+  enabled: true,                     // Enable cloud storage upload
+  provider: 'aws' | 'azure' | 'gcs' | 'cloudinary',
+  config: {
+    // Provider-specific configuration
+  },
+  publicAccess?: boolean,            // Make files publicly accessible
+  cdnUrl?: string,                   // Custom CDN URL
+  folder?: string,                   // Cloud folder/prefix path
+  metadata?: Record<string, string>, // Custom metadata tags
+  keepLocalCopy?: boolean,           // Keep local copy after cloud upload (default: false)
+  cleanupOnError?: boolean           // Auto-delete on upload failure (default: true)
+}
+```
+
+#### 💾 Local Copy Behavior
+
+By default, when cloud storage is enabled, files are **only** stored in the cloud:
+
+- `keepLocalCopy: false` (default) - Files uploaded to cloud only, no local copy
+- `keepLocalCopy: true` - Files uploaded to cloud AND saved locally
+
+```typescript
+// Cloud only (default)
+cloudStorage: {
+  enabled: true,
+  provider: 'aws',
+  config: { /* ... */ },
+  // keepLocalCopy: false (default - no local copy)
+}
+
+// Cloud + Local copy
+cloudStorage: {
+  enabled: true,
+  provider: 'aws',
+  config: { /* ... */ },
+  keepLocalCopy: true, // Keep local copy as well
+}
+```
+
+#### 🌐 AWS S3 Integration
+
+```typescript
+const uploader = createUploader({
+  fieldName: "file",
+  allowedExtensions: ["jpg", "png", "pdf"],
+  cloudStorage: {
+    enabled: true,
+    provider: "aws",
+    config: {
+      region: "us-east-1",
+      bucket: "my-bucket",
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    },
+    publicAccess: true,
+    folder: "uploads/images",
+    keepLocalCopy: false, // No local copy (default)
+  },
+});
+```
+
+#### 🔷 Azure Blob Storage Integration
+
+```typescript
+cloudStorage: {
+  enabled: true,
+  provider: 'azure',
+  config: {
+    accountName: 'mystorageaccount',
+    accountKey: process.env.AZURE_STORAGE_KEY,
+    containerName: 'uploads',
+  },
+  publicAccess: true,
+  folder: 'images',
+  keepLocalCopy: true, // Keep local copy as well
+}
+```
+
+#### 🔵 Google Cloud Storage Integration
+
+```typescript
+cloudStorage: {
+  enabled: true,
+  provider: 'gcs',
+  config: {
+    projectId: 'my-project',
+    bucketName: 'my-bucket',
+    keyFilename: './gcs-credentials.json',
+  },
+  publicAccess: true,
+  folder: 'uploads/images',
+}
+```
+
+#### 🎨 Cloudinary Integration
+
+```typescript
+cloudStorage: {
+  enabled: true,
+  provider: 'cloudinary',
+  config: {
+    cloudName: 'my-cloud',
+    apiKey: process.env.CLOUDINARY_API_KEY,
+    apiSecret: process.env.CLOUDINARY_API_SECRET,
+  },
+  folder: 'uploads/images',
+}
+```
+
+#### 🔒 Enhanced File Objects
+
+When cloud storage is enabled, uploaded files include cloud metadata:
+
+```typescript
+// With keepLocalCopy: false (default)
+{
+  fieldname: 'file',
+  originalname: 'photo.jpg',
+  mimetype: 'image/jpeg',
+  size: 1048576,
+
+  // ✨ Cloud storage info
+  cloudUrl: 'https://s3.amazonaws.com/bucket/file.jpg',
+  cloudPath: 'uploads/images/photo.jpg',
+  publicUrl: 'https://bucket.s3.amazonaws.com/file.jpg',
+  cdnUrl: 'https://cdn.example.com/file.jpg',
+  cloudProvider: 'aws',
+  cloudMetadata: {
+    eTag: '"abc123"',
+    versionId: 'xyz789'
+  }
+}
+
+// With keepLocalCopy: true
+{
+  fieldname: 'file',
+  originalname: 'photo.jpg',
+  mimetype: 'image/jpeg',
+  destination: 'uploads/images',    // Local path (when keepLocalCopy: true)
+  filename: '1234567890-photo.jpg', // Local filename
+  path: 'uploads/images/1234567890-photo.jpg', // Local path
+  size: 1048576,
+
+  // ✨ Cloud storage info
+  cloudUrl: 'https://s3.amazonaws.com/bucket/file.jpg',
+  cloudPath: 'uploads/images/photo.jpg',
+  publicUrl: 'https://bucket.s3.amazonaws.com/file.jpg',
+  cdnUrl: 'https://cdn.example.com/file.jpg',
+  cloudProvider: 'aws',
+  cloudMetadata: {
+    eTag: '"abc123"',
+    versionId: 'xyz789'
+  }
+}
+```
+
+#### 🧹 Automatic Cloud Cleanup
+
+- Files are automatically deleted from cloud storage on errors
+- Works with all supported providers
+- Configurable via `cleanupOnError` option
+- Cleanup on validation failures, controller errors, or exceptions
+- Local files cleaned up when `keepLocalCopy: true`
+
+#### 🎯 Usage Examples
+
+**Cloud Only (Default):**
+
+```typescript
+import { createUploader } from "upload-smith";
+
+const uploader = createUploader({
+  fieldName: "avatar",
+  allowedExtensions: ["jpg", "png", "webp"],
+  compressImage: true,
+  imageQuality: 85,
+  sizeConfig: {
+    defaultMB: 5,
+  },
+  cloudStorage: {
+    enabled: true,
+    provider: "aws",
+    config: {
+      region: process.env.AWS_REGION,
+      bucket: process.env.AWS_BUCKET,
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    },
+    publicAccess: true,
+    folder: "avatars",
+    // keepLocalCopy: false (default - no local storage)
+  },
+});
+
+app.post("/upload-avatar", uploader.single(), (req, res) => {
+  res.json({
+    // Cloud URLs only
+    cloudUrl: req.file.cloudUrl,
+    publicUrl: req.file.publicUrl,
+  });
+});
+```
+
+**Cloud + Local Copy:**
+
+```typescript
+const uploader = createUploader({
+  fieldName: "documents",
+  allowedExtensions: ["pdf", "docx"],
+  folderConfig: {
+    basePath: "uploads/documents", // Used when keepLocalCopy: true
+  },
+  cloudStorage: {
+    enabled: true,
+    provider: "aws",
+    config: {
+      /* ... */
+    },
+    folder: "documents",
+    keepLocalCopy: true, // Keep local copy as well
+  },
+});
+
+app.post("/upload", uploader.single(), (req, res) => {
+  res.json({
+    // Both local and cloud info available
+    localPath: req.file.path,
+    cloudUrl: req.file.cloudUrl,
+    publicUrl: req.file.publicUrl,
+  });
+});
+```
+
+**Local Only (No Cloud):**
+
+```typescript
+const uploader = createUploader({
+  fieldName: "file",
+  allowedExtensions: ["jpg", "png"],
+  folderConfig: {
+    basePath: "uploads",
+    byExtension: true,
+  },
+  // No cloudStorage config - works as before
+});
+
+app.post("/upload", uploader.single(), (req, res) => {
+  res.json({
+    // Local file info only
+    path: req.file.path,
+    filename: req.file.filename,
+  });
+});
+```
+
+### 🛠️ Technical Improvements
+
+- Direct streaming to cloud storage for memory efficiency
+- Optional local copy with `keepLocalCopy` flag
+- Provider-specific error handling
+- Automatic retry logic for failed cloud uploads
+- Unified interface across all cloud providers
+- Efficient cleanup of both cloud and local files on errors
+
+### 📚 Documentation
+
+- Complete cloud storage setup guides for all providers
+- Provider-specific configuration examples
+- Local copy behavior documentation
+- Environment variable best practices
+- Error handling for cloud operations
+
+### 🔄 Breaking Changes
+
+**None!** This is a pure feature addition with full backward compatibility.
+
+- Existing code without `cloudStorage` config continues to work exactly as before
+- All local storage features remain unchanged
+- No configuration changes required for existing users
+- `folderConfig` still works when using local storage or `keepLocalCopy: true`
+
+### 🐛 Bug Fixes
+
+- Improved error handling for network failures
+- Better cleanup on partial upload failures
+- Fixed potential race conditions in file cleanup
+
+---
+
 ## [1.0.0] – 🚀 Major Release: URL Upload Feature
 
 🎉 **Major feature addition: Download and process files from URLs**
@@ -258,15 +568,112 @@ None - this is a pure feature addition with backward compatibility
 
 ## Version History
 
-| Version | Release Date | Type  | Summary                  |
-| ------- | ------------ | ----- | ------------------------ |
-| 1.0.0   | 2025-01-XX   | Major | URL Upload Feature       |
-| 0.2.0   | 2024-XX-XX   | Minor | Production Stabilization |
-| 0.1.0   | 2024-XX-XX   | Minor | Initial Release          |
+| Version | Release Date | Type  | Summary                   |
+| ------- | ------------ | ----- | ------------------------- |
+| 2.0.0   | 2025-02-XX   | Major | Cloud Storage Integration |
+| 1.0.0   | 2025-01-XX   | Major | URL Upload Feature        |
+| 0.2.0   | 2024-XX-XX   | Minor | Production Stabilization  |
+| 0.1.0   | 2024-XX-XX   | Minor | Initial Release           |
 
 ---
 
 ## Migration Guides
+
+### Upgrading to 2.0.0 from 1.x
+
+**Good news: No breaking changes!** This is a pure feature addition.
+
+Your existing code will continue to work without modifications. The cloud storage feature is **optional** and can be enabled when you're ready.
+
+#### Storage Modes in v2.0.0:
+
+1. **Local Only (default, as before)**
+
+   ```typescript
+   const uploader = createUploader({
+     fieldName: "file",
+     folderConfig: { basePath: "uploads" },
+     // No cloud config - works exactly as before
+   });
+   ```
+
+2. **Cloud Only (new)**
+
+   ```typescript
+   const uploader = createUploader({
+     fieldName: "file",
+     cloudStorage: {
+       enabled: true,
+       provider: "aws",
+       config: {
+         /* ... */
+       },
+       // keepLocalCopy: false (default - cloud only)
+     },
+   });
+   ```
+
+3. **Cloud + Local Copy (new)**
+   ```typescript
+   const uploader = createUploader({
+     fieldName: "file",
+     folderConfig: { basePath: "uploads" }, // For local copy
+     cloudStorage: {
+       enabled: true,
+       provider: "aws",
+       config: {
+         /* ... */
+       },
+       keepLocalCopy: true, // Saves to both cloud and local
+     },
+   });
+   ```
+
+#### To Use Cloud Storage:
+
+1. **Add Cloud Storage Configuration**:
+
+```typescript
+const uploader = createUploader({
+  fieldName: "file",
+  allowedExtensions: ["jpg", "png"],
+
+  // Optional: Keep local copy
+  folderConfig: {
+    basePath: "uploads",
+  },
+
+  // NEW: Cloud storage
+  cloudStorage: {
+    enabled: true,
+    provider: "aws",
+    config: {
+      region: process.env.AWS_REGION,
+      bucket: process.env.AWS_BUCKET,
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    },
+    folder: "uploads",
+    publicAccess: true,
+    keepLocalCopy: false, // true to keep local copy
+  },
+});
+```
+
+2. **Access Cloud URLs**:
+
+```typescript
+app.post("/upload", uploader.single(), (req, res) => {
+  res.json({
+    cloudUrl: req.file.cloudUrl,
+    publicUrl: req.file.publicUrl,
+    // If keepLocalCopy: true, also has:
+    // localPath: req.file.path
+  });
+});
+```
+
+That's it! No other changes needed.
 
 ### Upgrading to 1.0.0 from 0.x
 
@@ -299,11 +706,27 @@ That's it! No other changes needed.
 
 ---
 
-## Planned Features
+## 🚀 Upcoming Minor Update
 
-- [ ] S3/Cloud storage integration
-- [ ] Progress callbacks for large uploads
+### 🔐 FTP & SFTP Storage Support
 
----
+In the next minor release, Upload Smith will introduce:
+
+- Native **FTP server integration**
+- Native **SFTP server integration**
+- Configuration-driven setup (same pattern as AWS, Azure, GCS & Cloudinary)
+- Unified cloud storage interface across all providers
+- Automatic cleanup support for FTP/SFTP uploads
+- Public URL generation where applicable
+- Secure authentication support (password & key-based for SFTP)
+
+This will allow Upload Smith to work seamlessly with:
+
+- Traditional hosting providers
+- Private file servers
+- Internal enterprise storage systems
+- Legacy infrastructure environments
+
+## Stay tuned for `v2.x.x` minor release.
 
 **Note:** This project follows [Semantic Versioning](https://semver.org/).
