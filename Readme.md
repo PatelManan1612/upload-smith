@@ -1311,14 +1311,14 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📄 License
 
-MIT © [Manan Patel](https://github.com/mananzealousweb)
+MIT © [Manan Patel](https://github.com/PatelManan1612/upload-smith)
 
 ---
 
 ## 🔗 Links
 
 - [npm Package](https://www.npmjs.com/package/upload-smith)
-- [GitHub Repository](https://github.com/mananzealousweb/upload-smith)
+- [GitHub Repository](https://github.com/PatelManan1612/upload-smith)
 - [Changelog](CHANGELOG.md)
 
 ---
@@ -1327,4 +1327,4 @@ MIT © [Manan Patel](https://github.com/mananzealousweb)
 
 Built on top of the excellent [Multer](https://github.com/expressjs/multer) library and [Sharp](https://github.com/lovell/sharp) for image processing. Cloud storage powered by official SDKs from AWS, Azure, Google Cloud, and Cloudinary.
 
-Made with ❤️ by [Manan Patel](https://github.com/mananzealousweb)
+Made with ❤️ by [Manan Patel](https://github.com/PatelManan1612/upload-smith)
