@@ -5,6 +5,7 @@
 [![npm version](https://img.shields.io/npm/v/upload-smith.svg)](https://www.npmjs.com/package/upload-smith)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-Support-yellow?logo=buymeacoffee)](https://buymeacoffee.com/manan_patel)
 
 ## ✨ Features
 
@@ -51,7 +52,7 @@ const uploader = createUploader({
 });
 
 app.post("/upload", uploader.single(), (req, res) => {
-  res.json({ 
+  res.json({
     path: req.file.path,
     filename: req.file.filename,
   });
@@ -130,6 +131,7 @@ app.post("/upload", uploader.single(), (req, res) => {
 ## 📖 Documentation
 
 ### Table of Contents
+
 - [Storage Modes](#storage-modes)
 - [Cloud Storage Configuration](#cloud-storage-configuration)
 - [AWS S3 Setup](#aws-s3-setup)
@@ -179,7 +181,9 @@ const uploader = createUploader({
   cloudStorage: {
     enabled: true,
     provider: "aws",
-    config: { /* ... */ },
+    config: {
+      /* ... */
+    },
     keepLocalCopy: false, // Default - no local copy
   },
 });
@@ -200,7 +204,9 @@ const uploader = createUploader({
   cloudStorage: {
     enabled: true,
     provider: "aws",
-    config: { /* ... */ },
+    config: {
+      /* ... */
+    },
     keepLocalCopy: true, // Keep local copy
   },
 });
@@ -230,11 +236,11 @@ cloudStorage: {
 
 ### `keepLocalCopy` Behavior
 
-| `keepLocalCopy` | Local Disk | Cloud Storage | Use Case |
-|-----------------|------------|---------------|----------|
-| `false` (default) | ❌ No | ✅ Yes | Production, scalable apps |
-| `true` | ✅ Yes | ✅ Yes | Backup, migration, hybrid |
-| Not configured | ✅ Yes | ❌ No | Development, simple apps |
+| `keepLocalCopy`   | Local Disk | Cloud Storage | Use Case                  |
+| ----------------- | ---------- | ------------- | ------------------------- |
+| `false` (default) | ❌ No      | ✅ Yes        | Production, scalable apps |
+| `true`            | ✅ Yes     | ✅ Yes        | Backup, migration, hybrid |
+| Not configured    | ✅ Yes     | ❌ No         | Development, simple apps  |
 
 ---
 
@@ -346,6 +352,7 @@ GCS_KEY_FILENAME=./gcs-credentials.json
 ### Service Account Permissions
 
 The service account needs these roles:
+
 - `Storage Object Creator`
 - `Storage Object Viewer`
 - `Storage Object Admin` (for deletion)
@@ -522,16 +529,18 @@ const uploader = createUploader({
     enabled: true,
     defaultMB: 5, // Fallback for unlisted extensions
     perExtensionMB: {
-      jpg: 10,  // 10MB for images
+      jpg: 10, // 10MB for images
       png: 10,
-      pdf: 20,  // 20MB for PDFs
+      pdf: 20, // 20MB for PDFs
       docx: 15, // 15MB for Word docs
     },
   },
   cloudStorage: {
     enabled: true,
     provider: "aws",
-    config: { /* ... */ },
+    config: {
+      /* ... */
+    },
   },
 });
 ```
@@ -547,14 +556,16 @@ const uploader = createUploader({
   fieldName: "photos",
   allowedExtensions: ["jpg", "png", "webp"],
   compressImage: true, // Enable compression
-  imageQuality: 80,    // 80% quality (1-100)
+  imageQuality: 80, // 80% quality (1-100)
   sizeConfig: {
     defaultMB: 10,
   },
   cloudStorage: {
     enabled: true,
     provider: "cloudinary",
-    config: { /* ... */ },
+    config: {
+      /* ... */
+    },
   },
 });
 ```
@@ -633,7 +644,9 @@ const uploader = createUploader({
   cloudStorage: {
     enabled: true,
     provider: "aws",
-    config: { /* ... */ },
+    config: {
+      /* ... */
+    },
   },
 });
 ```
@@ -656,13 +669,15 @@ const uploader = createUploader({
   cloudStorage: {
     enabled: true,
     provider: "aws",
-    config: { /* ... */ },
+    config: {
+      /* ... */
+    },
   },
 });
 
 app.post("/upload-multiple", uploader.multiple(), (req, res) => {
   res.json({
-    files: req.files.map(f => ({
+    files: req.files.map((f) => ({
       cloudUrl: f.cloudUrl,
       publicUrl: f.publicUrl,
     })),
@@ -693,7 +708,9 @@ const uploader = createUploader({
   cloudStorage: {
     enabled: true,
     provider: "aws",
-    config: { /* ... */ },
+    config: {
+      /* ... */
+    },
   },
 });
 
@@ -702,11 +719,11 @@ app.post("/upload", uploader.multiple(), (req, res) => {
   const rejected = req.rejectedFiles || [];
 
   res.json({
-    uploaded: uploaded.map(f => ({
+    uploaded: uploaded.map((f) => ({
       name: f.originalname,
       cloudUrl: f.cloudUrl,
     })),
-    rejected: rejected.map(r => ({
+    rejected: rejected.map((r) => ({
       name: r.originalname,
       reason: r.reason,
     })),
@@ -730,7 +747,7 @@ const uploader = createUploader({
   cloudStorage?: {
     enabled: true,
     provider: 'aws' | 'azure' | 'gcs' | 'cloudinary',
-    
+
     // AWS S3 Config
     config: {
       region: string,
@@ -738,7 +755,7 @@ const uploader = createUploader({
       accessKeyId: string,
       secretAccessKey: string,
     },
-    
+
     // Azure Blob Config
     config: {
       accountName: string,
@@ -746,7 +763,7 @@ const uploader = createUploader({
       containerName: string,
       // Or: connectionString: string,
     },
-    
+
     // GCS Config
     config: {
       projectId: string,
@@ -754,14 +771,14 @@ const uploader = createUploader({
       keyFilename: string,
       // Or: credentials: {...},
     },
-    
+
     // Cloudinary Config
     config: {
       cloudName: string,
       apiKey: string,
       apiSecret: string,
     },
-    
+
     publicAccess?: boolean,         // Make files public (default: false)
     folder?: string,                // Cloud folder path
     cdnUrl?: string,                // Custom CDN URL
@@ -837,7 +854,7 @@ const uploader = createUploader({
   originalname: 'photo.jpg',
   mimetype: 'image/jpeg',
   size: 524288,
-  
+
   // Cloud storage info
   cloudUrl: 'https://s3.amazonaws.com/bucket/uploads/photo.jpg',
   cloudPath: 'uploads/photo.jpg',
@@ -863,7 +880,7 @@ const uploader = createUploader({
   filename: '1234567890-photo.jpg',
   path: 'uploads/images/1234567890-photo.jpg', // Local path
   size: 524288,
-  
+
   // Cloud storage info
   cloudUrl: 'https://s3.amazonaws.com/bucket/uploads/photo.jpg',
   cloudPath: 'uploads/photo.jpg',
@@ -898,35 +915,36 @@ const uploader = createUploader({
 
 ### Cloud Storage Errors
 
-| Error | Code | Status | When it occurs |
-|-------|------|--------|----------------|
-| `CloudUploadError` | `CLOUD_UPLOAD_ERROR` | 500 | Cloud upload failed |
-| `CloudDeleteError` | `CLOUD_DELETE_ERROR` | 500 | Cloud deletion failed |
-| `InvalidCloudConfigError` | `INVALID_CLOUD_CONFIG` | 500 | Invalid cloud configuration |
+| Error                     | Code                   | Status | When it occurs              |
+| ------------------------- | ---------------------- | ------ | --------------------------- |
+| `CloudUploadError`        | `CLOUD_UPLOAD_ERROR`   | 500    | Cloud upload failed         |
+| `CloudDeleteError`        | `CLOUD_DELETE_ERROR`   | 500    | Cloud deletion failed       |
+| `InvalidCloudConfigError` | `INVALID_CLOUD_CONFIG` | 500    | Invalid cloud configuration |
 
 ### URL Upload Errors
 
-| Error | Code | Status | When it occurs |
-|-------|------|--------|----------------|
-| `DomainBlockedError` | `DOMAIN_BLOCKED` | 403 | Domain is in blocklist |
-| `DomainNotAllowedError` | `DOMAIN_NOT_ALLOWED` | 403 | Domain not in whitelist |
-| `InvalidUrlError` | `INVALID_URL` | 400 | Malformed URL or invalid protocol |
-| `TooManyRedirectsError` | `TOO_MANY_REDIRECTS` | 502 | Exceeded max redirects |
-| `UploadTimeoutError` | `UPLOAD_TIMEOUT` | 408 | Download timed out |
-| `HttpError` | `HTTP_ERROR` | varies | Non-200 HTTP response |
-| `NetworkError` | `NETWORK_ERROR` | 502 | Network/connection failure |
+| Error                   | Code                 | Status | When it occurs                    |
+| ----------------------- | -------------------- | ------ | --------------------------------- |
+| `DomainBlockedError`    | `DOMAIN_BLOCKED`     | 403    | Domain is in blocklist            |
+| `DomainNotAllowedError` | `DOMAIN_NOT_ALLOWED` | 403    | Domain not in whitelist           |
+| `InvalidUrlError`       | `INVALID_URL`        | 400    | Malformed URL or invalid protocol |
+| `TooManyRedirectsError` | `TOO_MANY_REDIRECTS` | 502    | Exceeded max redirects            |
+| `UploadTimeoutError`    | `UPLOAD_TIMEOUT`     | 408    | Download timed out                |
+| `HttpError`             | `HTTP_ERROR`         | varies | Non-200 HTTP response             |
+| `NetworkError`          | `NETWORK_ERROR`      | 502    | Network/connection failure        |
 
 ### Regular Upload Errors
 
-| Error | Code | Status | When it occurs |
-|-------|------|--------|----------------|
-| `InvalidConfigurationError` | `INVALID_CONFIGURATION` | 500 | Invalid uploader setup |
-| `InvalidFileExtensionError` | `INVALID_FILE_EXTENSION` | 400 | File type not allowed |
-| `FileSizeExceededError` | `FILE_SIZE_EXCEEDED` | 413 | File exceeds size limit |
-| `TooManyFilesError` | `TOO_MANY_FILES` | 400 | More than `maxFiles` uploaded |
-| `NoFileUploadedError` | `NO_FILE_UPLOADED` | 400 | No file sent in request |
+| Error                       | Code                     | Status | When it occurs                |
+| --------------------------- | ------------------------ | ------ | ----------------------------- |
+| `InvalidConfigurationError` | `INVALID_CONFIGURATION`  | 500    | Invalid uploader setup        |
+| `InvalidFileExtensionError` | `INVALID_FILE_EXTENSION` | 400    | File type not allowed         |
+| `FileSizeExceededError`     | `FILE_SIZE_EXCEEDED`     | 413    | File exceeds size limit       |
+| `TooManyFilesError`         | `TOO_MANY_FILES`         | 400    | More than `maxFiles` uploaded |
+| `NoFileUploadedError`       | `NO_FILE_UPLOADED`       | 400    | No file sent in request       |
 
 All errors include:
+
 - `message` - Human-readable error message
 - `code` - Machine-readable error code
 - `status` - HTTP status code
@@ -959,7 +977,7 @@ const profileUploader = createUploader({
 });
 
 app.post("/profile/upload", profileUploader.single(), (req, res) => {
-  res.json({ 
+  res.json({
     profilePicUrl: req.file.publicUrl,
     cdnUrl: req.file.cdnUrl,
   });
@@ -1006,7 +1024,7 @@ const documentUploader = createUploader({
 
 app.post("/documents/upload", documentUploader.multiple(), (req, res) => {
   res.json({
-    uploaded: req.files.map(f => ({
+    uploaded: req.files.map((f) => ({
       name: f.originalname,
       cloudUrl: f.cloudUrl,
       localPath: f.path, // Available because keepLocalCopy: true
@@ -1050,17 +1068,14 @@ const galleryUploader = createUploader({
   urlUpload: {
     enabled: true,
     maxSizeMB: 100,
-    allowedDomains: [
-      "imgur.com",
-      "giphy.com",
-    ],
+    allowedDomains: ["imgur.com", "giphy.com"],
   },
 });
 
 // Regular upload
 app.post("/gallery/upload", galleryUploader.multiple(), (req, res) => {
   res.json({
-    uploaded: req.files.map(f => ({
+    uploaded: req.files.map((f) => ({
       url: f.publicUrl,
       type: f.mimetype,
     })),
@@ -1071,8 +1086,8 @@ app.post("/gallery/upload", galleryUploader.multiple(), (req, res) => {
 app.post("/gallery/import", async (req, res) => {
   try {
     const result = await downloadFromUrl(req.body.url, galleryUploader.config);
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       url: result.publicUrl,
     });
   } catch (error) {
@@ -1236,6 +1251,7 @@ app.post("/upload", uploader.single(), (req, res) => {
 ```
 
 **Cleanup behavior:**
+
 - `keepLocalCopy: false` → Only cloud file deleted on error
 - `keepLocalCopy: true` → Both cloud and local files deleted on error
 - No cloud storage → Only local file deleted on error
@@ -1249,6 +1265,7 @@ app.post("/upload", uploader.single(), (req, res) => {
 Creates an uploader instance.
 
 **Returns:**
+
 - `single()` - Middleware for single file upload
 - `multiple()` - Middleware for multiple file uploads
 - `config` - The resolved configuration object
@@ -1259,6 +1276,7 @@ Creates an uploader instance.
 Downloads a file from URL with validation and processing.
 
 **Parameters:**
+
 - `url` - The URL to download from
 - `config` - The uploader configuration object
 
@@ -1271,10 +1289,10 @@ interface UrlDownloadResult {
   mimetype: string;
   originalUrl: string;
   finalUrl: string;
-  
+
   // If keepLocalCopy: true or no cloud storage
   path?: string;
-  
+
   // If cloud storage enabled
   cloudUrl?: string;
   publicUrl?: string;
@@ -1297,7 +1315,7 @@ app.post(
   asyncHandler(async (req, res) => {
     await processFile(req.file);
     res.json({ success: true });
-  })
+  }),
 );
 ```
 
@@ -1320,6 +1338,18 @@ MIT © [Manan Patel](https://github.com/PatelManan1612/upload-smith)
 - [npm Package](https://www.npmjs.com/package/upload-smith)
 - [GitHub Repository](https://github.com/PatelManan1612/upload-smith)
 - [Changelog](CHANGELOG.md)
+
+---
+
+## ☕ Support This Project
+
+If you find **Upload Smith** helpful in your projects, consider supporting its development.
+
+Your support helps maintain and improve this package 🚀
+
+👉 [Buy Me a Coffee](https://buymeacoffee.com/manan_patel)
+
+Thank you for supporting open-source ❤️
 
 ---
 
