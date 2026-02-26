@@ -1,6 +1,6 @@
 {
   "name": "upload-smith",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Config-driven Multer utility for easy file uploads with extension-based validation, auto folder management, size limits, cleanup, and optional image compression",
   "type": "module",
   "main": "./dist/cjs/index.js",
@@ -22,7 +22,7 @@
   "author": {
     "name": "Manan Patel",
     "email": "mananpatel1603@gmail.com",
-    "url": "https://github.com/mananzealousweb"
+    "url": "https://github.com/PatelManan1612/upload-smith"
   },
   "maintainers": [
     {
@@ -32,7 +32,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/mananzealousweb/upload-smith"
+    "url": "https://github.com/PatelManan1612/upload-smith"
+  },
+  "funding": {
+    "type": "individual",
+    "url": "https://buymeacoffee.com/manan_patel"
   },
   "scripts": {
     "clean": "rimraf dist",
