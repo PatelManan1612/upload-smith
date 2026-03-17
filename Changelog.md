@@ -6,6 +6,67 @@ This project follows **Semantic Versioning (SemVer)**.
 
 ---
 
+## [2.1.0] – 🔐 Minor Release: FTP & SFTP Storage Support
+
+🎉 **New feature addition: Native support for FTP and SFTP servers as storage providers**
+
+### ✨ New Features
+
+#### 📂 FTP & SFTP Support (NEW!)
+
+Upload files directly to traditional FTP servers or secure SFTP servers with full configuration control.
+
+**New Providers:**
+
+- **SFTP** - SSH File Transfer Protocol (secure, key-based or password auth)
+- **FTP** - File Transfer Protocol (standard or FTPS/TLS)
+
+#### 🔧 SFTP Configuration
+
+```typescript
+cloudStorage: {
+  enabled: true,
+  provider: 'sftp',
+  config: {
+    host: string,
+    port?: number,          // Default: 22
+    username: string,
+    password?: string,
+    privateKey?: string,    // Support for RSA/PEM keys
+    passphrase?: string,    // For encrypted keys
+    remotePath: string,     // Remote directory path
+    timeout?: number,       // Default: 30000ms
+  }
+}
+```
+
+#### 📡 FTP Configuration
+
+```typescript
+cloudStorage: {
+  enabled: true,
+  provider: 'ftp',
+  config: {
+    host: string,
+    port?: number,          // Default: 21
+    username: string,
+    password: string,
+    remotePath: string,
+    secure?: boolean,       // Enable FTPS (TLS)
+    passive?: boolean,      // Default: true
+  }
+}
+```
+
+### 🛠️ Technical Improvements
+
+- Seamless integration with existing `createUploader` and `downloadFromUrl` flows.
+- Automated folder creation on remote servers (v1.0.x style logic for FTP/SFTP).
+- Robust error handling for connection timeouts and authentication failures.
+- Full support for `keepLocalCopy` and `cleanupOnError` with FTP/SFTP.
+
+---
+
 ## [2.0.0] – 🚀 Major Release: Cloud Storage Integration
 
 🎉 **Major feature addition: Upload directly to AWS S3, Azure Blob Storage, Google Cloud Storage, and Cloudinary**
@@ -570,6 +631,7 @@ None - this is a pure feature addition with backward compatibility
 
 | Version | Release Date | Type  | Summary                   |
 | ------- | ------------ | ----- | ------------------------- |
+| 2.1.0   | 2026-03-17   | Minor | FTP & SFTP Storage Support|
 | 2.0.0   | 2025-02-XX   | Major | Cloud Storage Integration |
 | 1.0.0   | 2025-01-XX   | Major | URL Upload Feature        |
 | 0.2.0   | 2024-XX-XX   | Minor | Production Stabilization  |
@@ -706,27 +768,6 @@ That's it! No other changes needed.
 
 ---
 
-## 🚀 Upcoming Minor Update
-
-### 🔐 FTP & SFTP Storage Support
-
-In the next minor release, Upload Smith will introduce:
-
-- Native **FTP server integration**
-- Native **SFTP server integration**
-- Configuration-driven setup (same pattern as AWS, Azure, GCS & Cloudinary)
-- Unified cloud storage interface across all providers
-- Automatic cleanup support for FTP/SFTP uploads
-- Public URL generation where applicable
-- Secure authentication support (password & key-based for SFTP)
-
-This will allow Upload Smith to work seamlessly with:
-
-- Traditional hosting providers
-- Private file servers
-- Internal enterprise storage systems
-- Legacy infrastructure environments
-
-## Stay tuned for `v2.x.x` minor release.
+## Stay tuned for future updates.
 
 **Note:** This project follows [Semantic Versioning](https://semver.org/).
