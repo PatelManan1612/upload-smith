@@ -1,9 +1,13 @@
-// providers/sftp-provider.ts - FIXED VERSION
+// providers/sftp-provider.ts
 // SFTP cloud storage provider implementation
 
 import fs from "fs";
 import path from "path";
-import { SftpConfig, CloudUploadResult, ICloudStorageProvider } from "../types.js";
+import {
+  SftpConfig,
+  CloudUploadResult,
+  ICloudStorageProvider,
+} from "../types.js";
 import {
   CloudStorageConfigError,
   CloudStorageUploadError,
@@ -158,47 +162,41 @@ export class SftpProvider implements ICloudStorageProvider {
   }
 
   /**
-   * Create remote directory recursively - FIXED VERSION
+   * Create remote directory recursively
    */
   private async createRemoteDirectory(
     sftp: any,
-    remotePath: string
+    remotePath: string,
   ): Promise<void> {
-    // Normalize path and remove leading/trailing slashes
     const normalizedPath = remotePath.replace(/^\/+|\/+$/g, "");
     const parts = normalizedPath.split("/").filter((p) => p);
 
-    // ✅ Start from home directory, not root
     let currentPath = "";
 
     for (const part of parts) {
       currentPath = currentPath ? `${currentPath}/${part}` : part;
 
       try {
-        // Check if directory exists
         await new Promise<void>((resolve, reject) => {
-          sftp.stat(currentPath, (err: Error, stats: any) => {
+          sftp.stat(currentPath, (err: Error) => {
             if (err) {
-              // Directory doesn't exist, create it
               sftp.mkdir(currentPath, (mkdirErr: Error) => {
                 if (mkdirErr && !mkdirErr.message.includes("exists")) {
-                  console.error(`Failed to create directory ${currentPath}:`, mkdirErr.message);
                   reject(mkdirErr);
                 } else {
-                  console.log(`✅ Created directory: ${currentPath}`);
                   resolve();
                 }
               });
             } else {
-              // Directory already exists
-              console.log(`✅ Directory exists: ${currentPath}`);
               resolve();
             }
           });
         });
       } catch (error: any) {
-        // Only throw if it's not a "file exists" error
-        if (!error.message.includes("exists") && !error.message.includes("Failure")) {
+        if (
+          !error.message.includes("exists") &&
+          !error.message.includes("Failure")
+        ) {
           throw error;
         }
       }
@@ -206,12 +204,12 @@ export class SftpProvider implements ICloudStorageProvider {
   }
 
   /**
-   * Upload file to SFTP server - FIXED VERSION
+   * Upload file to SFTP server
    */
   async upload(
     filePath: string,
     destinationPath: string,
-    mimetype: string
+    mimetype: string,
   ): Promise<CloudUploadResult> {
     let sftp: any;
 
@@ -222,59 +220,47 @@ export class SftpProvider implements ICloudStorageProvider {
       const fileSize = fs.statSync(filePath).size;
       const filename = path.basename(filePath);
 
-      // ✅ FIXED: Normalize paths properly
-      // Remove leading slash from remotePath if it exists
-      const remotePath = this.config.remotePath.replace(/^\/+/, "").replace(/\/+$/, "");
-      
-      // Remove leading slash from destinationPath
+      // Normalize paths
+      const remotePath = this.config.remotePath
+        .replace(/^\/+/, "")
+        .replace(/\/+$/, "");
       const destPath = destinationPath.replace(/^\/+/, "");
-      
-      // Combine paths (both relative to home directory)
-      const fullRemotePath = remotePath ? `${remotePath}/${destPath}` : destPath;
+      const fullRemotePath = remotePath
+        ? `${remotePath}/${destPath}`
+        : destPath;
 
-      console.log(`📂 Uploading to: ${fullRemotePath}`);
-
-      // ✅ Ensure remote directory exists
+      // Ensure remote directory exists
       const remoteDir = path.dirname(fullRemotePath).replace(/\\/g, "/");
-      console.log(`📁 Ensuring directory exists: ${remoteDir}`);
-      
       await this.createRemoteDirectory(sftp, remoteDir);
 
-      // ✅ Upload file
-      console.log(`📤 Uploading file: ${filePath} -> ${fullRemotePath}`);
-      
+      // Upload file
       await new Promise<void>((resolve, reject) => {
         sftp.fastPut(filePath, fullRemotePath, (err: Error) => {
           if (err) {
-            console.error(`❌ Upload failed:`, err.message);
             reject(err);
           } else {
-            console.log(`✅ Upload successful: ${fullRemotePath}`);
             resolve();
           }
         });
       });
 
-      // Generate URLs
-      const cloudUrl = this.getPublicUrl(destPath);
-
+      // ✅ Return upload confirmation
       return {
         filename,
         size: fileSize,
         mimetype,
         provider: "sftp",
         cloudPath: fullRemotePath,
-        cloudUrl,
-        publicUrl: cloudUrl,
         metadata: {
           host: this.config.host,
           port: this.config.port || 22,
+          username: this.config.username,
           remotePath: fullRemotePath,
+          uploaded: true,
+          uploadedAt: new Date().toISOString(),
         },
       };
     } catch (error: any) {
-      console.error("❌ SFTP Upload Error:", error.message);
-      
       if (error.message?.includes("Permission denied")) {
         throw new CloudStoragePermissionError({
           message: "Permission denied to write to SFTP server",
@@ -283,19 +269,6 @@ export class SftpProvider implements ICloudStorageProvider {
             host: this.config.host,
             remotePath: destinationPath,
             error: error.message,
-          },
-        });
-      }
-
-      if (error.message?.includes("No such file")) {
-        throw new CloudStorageUploadError({
-          message: `Directory does not exist on SFTP server. Path: ${destinationPath}`,
-          info: {
-            provider: "sftp",
-            host: this.config.host,
-            remotePath: destinationPath,
-            error: error.message,
-            hint: "Make sure the base directory exists and you have write permissions",
           },
         });
       }
@@ -350,24 +323,14 @@ export class SftpProvider implements ICloudStorageProvider {
   }
 
   /**
-   * Get public URL for SFTP file
+   * Get public URL - Not applicable for SFTP (returns server location)
    */
   getPublicUrl(cloudPath: string): string {
-    // If baseUrl is configured, use it
-    if (this.config.baseUrl) {
-      const baseUrl = this.config.baseUrl.replace(/\/$/, "");
-      const path = cloudPath.startsWith("/") ? cloudPath.slice(1) : cloudPath;
-      return `${baseUrl}/${path}`;
-    }
-
-    // Otherwise, construct SFTP URL (not publicly accessible)
-    return `sftp://${this.config.host}:${this.config.port || 22}${
-      this.config.remotePath
-    }/${cloudPath}`;
+    return `File uploaded to SFTP server at: ${this.config.host}:${this.config.port || 22}/${cloudPath}`;
   }
 
   /**
-   * Get CDN URL (same as public URL for SFTP)
+   * Get CDN URL - Not applicable for SFTP
    */
   getCdnUrl(cloudPath: string): string {
     return this.getPublicUrl(cloudPath);

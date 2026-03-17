@@ -209,11 +209,6 @@ export interface SftpConfig {
   /** Remote base path where files will be uploaded */
   remotePath: string;
 
-  /** Base URL for public access (e.g., 'https://files.example.com')
-   * If not provided, SFTP URL will be used (not publicly accessible)
-   */
-  baseUrl?: string;
-
   /** Connection timeout in milliseconds (default: 30000) */
   timeout?: number;
 
@@ -242,11 +237,6 @@ export interface FtpConfig {
 
   /** Remote base path where files will be uploaded */
   remotePath: string;
-
-  /** Base URL for public access (e.g., 'https://files.example.com')
-   * If not provided, FTP URL will be used (not publicly accessible)
-   */
-  baseUrl?: string;
 
   /** Use FTPS (FTP over TLS/SSL) (default: false) */
   secure?: boolean;
@@ -362,7 +352,7 @@ export interface CloudUploadResult {
   cloudPath: string;
 
   /** Direct cloud URL */
-  cloudUrl: string;
+  cloudUrl?: string;
 
   /** Public URL (may be same as cloudUrl) */
   publicUrl?: string;

@@ -3,7 +3,11 @@
 
 import fs from "fs";
 import path from "path";
-import { FtpConfig, CloudUploadResult, ICloudStorageProvider } from "../types.js";
+import {
+  FtpConfig,
+  CloudUploadResult,
+  ICloudStorageProvider,
+} from "../types.js";
 import {
   CloudStorageConfigError,
   CloudStorageUploadError,
@@ -18,7 +22,6 @@ import {
  * Installation: npm install basic-ftp
  */
 export class FtpProvider implements ICloudStorageProvider {
-  private ftpClient: any;
   private config: FtpConfig;
 
   constructor(config: FtpConfig) {
@@ -68,10 +71,10 @@ export class FtpProvider implements ICloudStorageProvider {
       const { Client } = await import("basic-ftp");
 
       const client = new Client();
-      client.ftp.verbose = this.config.verbose || false;
 
-      // Set timeout
-      // client.ftp.timeout = this.config.timeout || 30000;
+      if (this.config.verbose) {
+        client.ftp.verbose = true;
+      }
 
       // Connect to FTP server
       await client.access({
@@ -79,7 +82,7 @@ export class FtpProvider implements ICloudStorageProvider {
         port: this.config.port || 21,
         user: this.config.username,
         password: this.config.password,
-        secure: this.config.secure || false, // Use FTPS if true
+        secure: this.config.secure || false,
         secureOptions: this.config.secureOptions,
       });
 
@@ -126,7 +129,7 @@ export class FtpProvider implements ICloudStorageProvider {
    */
   private async ensureRemoteDirectory(
     client: any,
-    remotePath: string
+    remotePath: string,
   ): Promise<void> {
     try {
       await client.ensureDir(remotePath);
@@ -148,7 +151,7 @@ export class FtpProvider implements ICloudStorageProvider {
   async upload(
     filePath: string,
     destinationPath: string,
-    mimetype: string
+    mimetype: string,
   ): Promise<CloudUploadResult> {
     let client: any;
 
@@ -173,8 +176,8 @@ export class FtpProvider implements ICloudStorageProvider {
       const readable = fs.createReadStream(filePath);
       await client.uploadFrom(readable, fullRemotePath);
 
-      // Generate URLs
-      const cloudUrl = this.getPublicUrl(destinationPath);
+      // ✅ Return upload confirmation
+      const protocol = this.config.secure ? "FTPS" : "FTP";
 
       return {
         filename,
@@ -182,13 +185,15 @@ export class FtpProvider implements ICloudStorageProvider {
         mimetype,
         provider: "ftp",
         cloudPath: fullRemotePath,
-        cloudUrl,
-        publicUrl: cloudUrl,
         metadata: {
           host: this.config.host,
           port: this.config.port || 21,
+          username: this.config.username,
           remotePath: fullRemotePath,
           secure: this.config.secure || false,
+          protocol: protocol,
+          uploaded: true,
+          uploadedAt: new Date().toISOString(),
         },
       };
     } catch (error: any) {
@@ -244,25 +249,14 @@ export class FtpProvider implements ICloudStorageProvider {
   }
 
   /**
-   * Get public URL for FTP file
+   * Get public URL - Not applicable for FTP (returns server location)
    */
   getPublicUrl(cloudPath: string): string {
-    // If baseUrl is configured, use it (e.g., HTTP access to FTP files)
-    if (this.config.baseUrl) {
-      const baseUrl = this.config.baseUrl.replace(/\/$/, "");
-      const path = cloudPath.startsWith("/") ? cloudPath.slice(1) : cloudPath;
-      return `${baseUrl}/${path}`;
-    }
-
-    // Otherwise, construct FTP URL (not publicly accessible via browser)
-    const protocol = this.config.secure ? "ftps" : "ftp";
-    return `${protocol}://${this.config.host}:${this.config.port || 21}${
-      this.config.remotePath
-    }/${cloudPath}`;
+    return `File uploaded to FTP server at: ${this.config.host}:${this.config.port || 21}${cloudPath}`;
   }
 
   /**
-   * Get CDN URL (same as public URL for FTP)
+   * Get CDN URL - Not applicable for FTP
    */
   getCdnUrl(cloudPath: string): string {
     return this.getPublicUrl(cloudPath);

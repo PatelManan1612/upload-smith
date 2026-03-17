@@ -1,6 +1,6 @@
 {
   "name": "upload-smith",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Config-driven Multer utility for easy file uploads with extension-based validation, auto folder management, size limits, cleanup, and optional image compression",
   "type": "module",
   "main": "./dist/cjs/index.js",
@@ -50,7 +50,7 @@
     "@azure/storage-blob": "^12.30.0",
     "@google-cloud/storage": "^7.18.0",
     "@types/ssh2": "^1.15.5",
-    "basic-ftp": "^5.1.0",
+    "basic-ftp": "^5.2.0",
     "cloudinary": "^2.9.0",
     "express": "^5.2.1",
     "multer": "^2.0.2",
