@@ -1,6 +1,6 @@
 {
   "name": "upload-smith",
-  "version": "2.0.2",
+  "version": "2.1.0",
   "description": "Upload Smith is an Express.js file upload middleware built on top of Multer that supports AWS S3, Azure Blob Storage, Google Cloud Storage (GCS), Cloudinary, FTP, and SFTP.",
   "type": "module",
   "main": "./dist/cjs/index.js",
