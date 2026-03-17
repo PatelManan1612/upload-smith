@@ -60,7 +60,13 @@ export interface UrlUploadConfig {
 /**
  * Supported cloud storage providers
  */
-export type CloudStorageProvider = "aws" | "gcs" | "azure" | "cloudinary";
+export type CloudStorageProvider =
+  | "aws"
+  | "gcs"
+  | "azure"
+  | "cloudinary"
+  | "sftp" // ✅ NEW
+  | "ftp"; // ✅ NEW;
 
 /**
  * AWS S3 Configuration
@@ -179,6 +185,78 @@ export type AzureConfig = AzureAuthConfig & {
 };
 
 /**
+ * SFTP Configuration
+ */
+export interface SftpConfig {
+  /** SFTP server hostname */
+  host: string;
+
+  /** SFTP server port (default: 22) */
+  port?: number;
+
+  /** Username for authentication */
+  username: string;
+
+  /** Password for authentication (if not using privateKey) */
+  password?: string;
+
+  /** Path to private key file (alternative to password) */
+  privateKey?: string;
+
+  /** Passphrase for private key (if encrypted) */
+  passphrase?: string;
+
+  /** Remote base path where files will be uploaded */
+  remotePath: string;
+
+  /** Connection timeout in milliseconds (default: 30000) */
+  timeout?: number;
+
+  /** Keep connection alive */
+  keepalive?: boolean;
+
+  /** Keepalive interval in milliseconds (default: 10000) */
+  keepaliveInterval?: number;
+}
+
+/**
+ * FTP Configuration
+ */
+export interface FtpConfig {
+  /** FTP server hostname */
+  host: string;
+
+  /** FTP server port (default: 21) */
+  port?: number;
+
+  /** Username for authentication */
+  username: string;
+
+  /** Password for authentication */
+  password: string;
+
+  /** Remote base path where files will be uploaded */
+  remotePath: string;
+
+  /** Use FTPS (FTP over TLS/SSL) (default: false) */
+  secure?: boolean;
+
+  /** TLS/SSL options for FTPS */
+  secureOptions?: {
+    rejectUnauthorized?: boolean;
+  };
+
+  /** Connection timeout in milliseconds (default: 30000) */
+  timeout?: number;
+
+  /** Enable verbose logging (default: false) */
+  verbose?: boolean;
+
+  /** Passive mode (default: true) */
+  passive?: boolean;
+}
+
+/**
  * Cloudinary Configuration
  */
 export interface CloudinaryConfig {
@@ -229,6 +307,12 @@ export interface CloudStorageConfig {
   /** Cloudinary configuration (required if provider is 'cloudinary') */
   cloudinary?: CloudinaryConfig;
 
+  /** SFTP configuration (required if provider is 'sftp') ✅ NEW */
+  sftp?: SftpConfig;
+
+  /** FTP configuration (required if provider is 'ftp') ✅ NEW */
+  ftp?: FtpConfig;
+
   /** Keep local copy after cloud upload - Default: false */
   keepLocalCopy?: boolean;
 
@@ -268,7 +352,7 @@ export interface CloudUploadResult {
   cloudPath: string;
 
   /** Direct cloud URL */
-  cloudUrl: string;
+  cloudUrl?: string;
 
   /** Public URL (may be same as cloudUrl) */
   publicUrl?: string;
