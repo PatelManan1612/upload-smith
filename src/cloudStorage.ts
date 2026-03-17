@@ -15,6 +15,8 @@ import { AwsS3Provider } from "./external-storage-services/aws.service.js";
 import { GcsProvider } from "./external-storage-services/gcs.service.js";
 import { AzureBlobProvider } from "./external-storage-services/azure.service.js";
 import { CloudinaryProvider } from "./external-storage-services/cloudinary.service.js";
+import { SftpProvider } from "./external-storage-services/sftp.service.js";
+import { FtpProvider } from "./external-storage-services/ftp.service.js";
 
 /**
  * Cloud Storage Service
@@ -52,6 +54,8 @@ export class CloudStorageService {
       "gcs",
       "azure",
       "cloudinary",
+      "sftp", // ✅ NEW
+      "ftp", // ✅ NEW
     ];
     if (!validProviders.includes(this.config.provider)) {
       throw new CloudStorageConfigError({
@@ -97,6 +101,24 @@ export class CloudStorageService {
           });
         }
         break;
+
+      // ✅ NEW: SFTP validation
+      case "sftp":
+        if (!this.config.sftp) {
+          throw new CloudStorageConfigError({
+            message: "SFTP configuration is required when provider is 'sftp'",
+          });
+        }
+        break;
+
+      // ✅ NEW: FTP validation
+      case "ftp":
+        if (!this.config.ftp) {
+          throw new CloudStorageConfigError({
+            message: "FTP configuration is required when provider is 'ftp'",
+          });
+        }
+        break;
     }
   }
 
@@ -117,6 +139,13 @@ export class CloudStorageService {
       case "cloudinary":
         return new CloudinaryProvider(this.config.cloudinary!);
 
+      // ✅ NEW: SFTP provider
+      case "sftp":
+        return new SftpProvider(this.config.sftp!);
+
+      // ✅ NEW: FTP provider
+      case "ftp":
+        return new FtpProvider(this.config.ftp!);
       default:
         throw new CloudStorageConfigError({
           message: `Unsupported provider: ${this.config.provider}`,

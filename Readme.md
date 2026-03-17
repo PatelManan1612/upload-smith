@@ -1,16 +1,31 @@
 # Upload Smith
 
-**A powerful, config-driven file upload utility for Express.js with support for AWS S3, Azure Blob Storage, Google Cloud Storage, and Cloudinary.**
+**Upload Smith is an Express.js file upload middleware built on top of Multer that supports AWS S3, Azure Blob Storage, Google Cloud Storage (GCS), Cloudinary, FTP, and SFTP.**
+
+It allows developers to easily handle file uploads in Node.js applications with validation, per-extension size limits, automatic cleanup, image compression, and optional cloud storage.
 
 [![npm version](https://img.shields.io/npm/v/upload-smith.svg)](https://www.npmjs.com/package/upload-smith)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-Support-yellow?logo=buymeacoffee)](https://buymeacoffee.com/manan_patel)
 
+## 🤔 Why Use Upload Smith Instead of Raw Multer?
+
+While Multer is powerful, it requires manual configuration for:
+
+- **Cloud uploads** (S3, Azure, GCS, Cloudinary, FTP, SFTP)
+- **File validation** (Extension-based allowlists)
+- **Size limits** (Per-extension configuration)
+- **Cleanup on error** (Automatic deletion of partial uploads)
+- **Image compression** (Built-in Sharp integration)
+- **URL imports** (Download and process files from URLs)
+
+Upload Smith provides a single config-driven interface that handles all of the above with minimal setup.
+
 ## ✨ Features
 
 - 🎯 **Simple Configuration** - One config object for all upload settings
-- ☁️ **Cloud Storage** - Upload to AWS S3, Azure Blob, GCS, or Cloudinary
+- ☁️ **Cloud Storage** - Upload to AWS S3, Azure Blob, GCS, Cloudinary, **FTP**, or **SFTP**
 - 💾 **Flexible Storage** - Cloud only, local only, or both with `keepLocalCopy`
 - 📥 **URL Download Support** - Download and process files from URLs
 - 🔒 **Domain Control** - Whitelist/blacklist domains for URL uploads
@@ -73,14 +88,14 @@ const uploader = createUploader({
   cloudStorage: {
     enabled: true,
     provider: "aws",
-    config: {
+    aws: {
       region: process.env.AWS_REGION,
       bucket: process.env.AWS_BUCKET,
       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     },
-    publicAccess: true,
-    folder: "uploads",
+    publicUrl: true,
+    uploadPath: "uploads",
     keepLocalCopy: false, // Default - no local copy
   },
 });
@@ -105,13 +120,13 @@ const uploader = createUploader({
   cloudStorage: {
     enabled: true,
     provider: "aws",
-    config: {
+    aws: {
       region: process.env.AWS_REGION,
       bucket: process.env.AWS_BUCKET,
       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     },
-    folder: "uploads",
+    uploadPath: "uploads",
     keepLocalCopy: true, // Keep local copy as well
   },
 });
@@ -138,6 +153,8 @@ app.post("/upload", uploader.single(), (req, res) => {
 - [Azure Blob Storage Setup](#azure-blob-storage-setup)
 - [Google Cloud Storage Setup](#google-cloud-storage-setup)
 - [Cloudinary Setup](#cloudinary-setup)
+- [SFTP Setup](#sftp-setup)
+- [FTP Setup](#ftp-setup)
 - [URL Upload Feature](#url-upload-feature)
 - [Per-Extension Size Limits](#per-extension-size-limits)
 - [Image Compression](#image-compression)
@@ -181,8 +198,8 @@ const uploader = createUploader({
   cloudStorage: {
     enabled: true,
     provider: "aws",
-    config: {
-      /* ... */
+    aws: {
+      /* ... AWS S3 config ... */
     },
     keepLocalCopy: false, // Default - no local copy
   },
@@ -204,8 +221,8 @@ const uploader = createUploader({
   cloudStorage: {
     enabled: true,
     provider: "aws",
-    config: {
-      /* ... */
+    aws: {
+      /* ... AWS S3 config ... */
     },
     keepLocalCopy: true, // Keep local copy
   },
@@ -223,11 +240,16 @@ const uploader = createUploader({
 ```javascript
 cloudStorage: {
   enabled: true,                    // Enable cloud storage
-  provider: 'aws' | 'azure' | 'gcs' | 'cloudinary', // Choose provider
-  config: { /* provider-specific */ },
-  publicAccess?: boolean,           // Make files publicly accessible (default: false)
-  folder?: string,                  // Cloud folder/prefix path
-  cdnUrl?: string,                  // Custom CDN URL
+  provider: 'aws' | 'azure' | 'gcs' | 'cloudinary' | 'sftp' | 'ftp', 
+  aws: { /* AWS config */ },
+  azure: { /* Azure config */ },
+  gcs: { /* GCS config */ },
+  cloudinary: { /* Cloudinary config */ },
+  sftp: { /* SFTP config */ },
+  ftp: { /* FTP config */ },
+  publicUrl?: boolean,              // Generate and return public URL (default: true)
+  uploadPath?: string,              // Cloud folder/prefix path (overrides folderConfig)
+  useCdn?: boolean,                 // Use CDN URL if available
   metadata?: Record<string, string>, // Custom metadata tags
   keepLocalCopy?: boolean,          // Keep local copy after cloud upload (default: false)
   cleanupOnError?: boolean          // Auto-delete on failure (default: true)
@@ -255,14 +277,14 @@ const uploader = createUploader({
   cloudStorage: {
     enabled: true,
     provider: "aws",
-    config: {
+    aws: {
       region: "us-east-1",
       bucket: "my-bucket",
       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     },
-    publicAccess: true,
-    folder: "uploads/images",
+    publicUrl: true,
+    uploadPath: "uploads/images",
     keepLocalCopy: false, // Cloud only
   },
 });
@@ -289,15 +311,15 @@ const uploader = createUploader({
   cloudStorage: {
     enabled: true,
     provider: "azure",
-    config: {
+    azure: {
       accountName: "mystorageaccount",
       accountKey: process.env.AZURE_ACCOUNT_KEY,
       containerName: "uploads",
       // Optional: use connection string instead
       // connectionString: process.env.AZURE_STORAGE_CONNECTION_STRING,
     },
-    publicAccess: true,
-    folder: "documents",
+    publicUrl: true,
+    uploadPath: "documents",
     keepLocalCopy: false,
   },
 });
@@ -324,9 +346,9 @@ const uploader = createUploader({
   cloudStorage: {
     enabled: true,
     provider: "gcs",
-    config: {
+    gcs: {
       projectId: "my-project-id",
-      bucketName: "my-bucket",
+      bucket: "my-bucket",
       keyFilename: "./gcs-credentials.json",
       // Or use credentials object
       // credentials: {
@@ -334,8 +356,8 @@ const uploader = createUploader({
       //   private_key: process.env.GCS_PRIVATE_KEY,
       // },
     },
-    publicAccess: true,
-    folder: "uploads",
+    publicUrl: true,
+    uploadPath: "uploads",
     keepLocalCopy: false,
   },
 });
@@ -369,12 +391,12 @@ const uploader = createUploader({
   cloudStorage: {
     enabled: true,
     provider: "cloudinary",
-    config: {
-      cloudName: "my-cloud",
-      apiKey: process.env.CLOUDINARY_API_KEY,
-      apiSecret: process.env.CLOUDINARY_API_SECRET,
+    cloudinary: {
+      cloud_name: "my-cloud",
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
     },
-    folder: "product-images",
+    uploadPath: "product-images",
     keepLocalCopy: false,
   },
 });
@@ -387,6 +409,70 @@ CLOUDINARY_CLOUD_NAME=my-cloud
 CLOUDINARY_API_KEY=123456789012345
 CLOUDINARY_API_SECRET=abcdefghijklmnopqrstuvwxyz123456
 ```
+
+---
+
+## SFTP Setup
+
+### Configuration
+
+```javascript
+const uploader = createUploader({
+  fieldName: "file",
+  cloudStorage: {
+    enabled: true,
+    provider: "sftp",
+    sftp: {
+      host: "sftp.example.com",
+      port: 22,
+      username: "myuser",
+      password: "mypassword",
+      // Or use private key
+      // privateKey: fs.readFileSync('./id_rsa', 'utf8'),
+      // passphrase: 'key-passphrase',
+      remotePath: "/uploads/data",
+    },
+    keepLocalCopy: false,
+  },
+});
+```
+
+### Authentication Options
+
+- **Password**: Simple username/password authentication.
+- **Private Key**: Provide a `privateKey` string (content of your `.pem` or `id_rsa` file).
+- **Passphrase**: Optional passphrase if your private key is encrypted.
+
+---
+
+## FTP Setup
+
+### Configuration
+
+```javascript
+const uploader = createUploader({
+  fieldName: "file",
+  cloudStorage: {
+    enabled: true,
+    provider: "ftp",
+    ftp: {
+      host: "ftp.example.com",
+      port: 21,
+      username: "ftpuser",
+      password: "ftppassword",
+      remotePath: "/public_html/uploads",
+      secure: true, // Use FTPS (FTP over TLS)
+      passive: true,
+    },
+    keepLocalCopy: false,
+  },
+});
+```
+
+### Security Options
+
+- **secure**: Set to `true` to enable FTPS (explicit TLS).
+- **secureOptions**: Native Node.js TLS options (e.g., `{ rejectUnauthorized: false }` for self-signed certs).
 
 ---
 
@@ -408,13 +494,13 @@ const uploader = createUploader({
   cloudStorage: {
     enabled: true,
     provider: "aws",
-    config: {
+    aws: {
       region: process.env.AWS_REGION,
       bucket: process.env.AWS_BUCKET,
       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     },
-    folder: "url-imports",
+    uploadPath: "url-imports",
     keepLocalCopy: false, // Cloud only
   },
   urlUpload: {
@@ -563,7 +649,7 @@ const uploader = createUploader({
   cloudStorage: {
     enabled: true,
     provider: "cloudinary",
-    config: {
+    cloudinary: {
       /* ... */
     },
   },
@@ -777,6 +863,28 @@ const uploader = createUploader({
       cloudName: string,
       apiKey: string,
       apiSecret: string,
+    },
+
+    // SFTP Config
+    config: {
+      host: string,
+      port?: number,
+      username: string,
+      password?: string,
+      privateKey?: string,
+      passphrase?: string,
+      remotePath: string,
+    },
+
+    // FTP Config
+    config: {
+      host: string,
+      port?: number,
+      username: string,
+      password: string,
+      remotePath: string,
+      secure?: boolean,
+      passive?: boolean,
     },
 
     publicAccess?: boolean,         // Make files public (default: false)
