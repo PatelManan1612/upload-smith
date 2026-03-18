@@ -4,25 +4,36 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- SEO Meta Tags -->
-  <title>Upload Smith — Express.js File Upload Middleware for AWS S3, Azure, GCS & More</title>
+  <!-- ─── TAB TITLE & FAVICON ─── -->
+  <title>Upload Smith — Express.js File Upload Middleware for AWS S3, Azure, GCS &amp; More</title>
+  <link rel="icon" type="image/svg+xml" href="https://res.cloudinary.com/daudl2cc3/image/upload/v1773833984/Brand_symbol_ocyzo3.png" />
+  <link rel="shortcut icon" href="https://res.cloudinary.com/daudl2cc3/image/upload/v1773833984/Brand_symbol_ocyzo3.png" />
+  <link rel="apple-touch-icon" href="https://res.cloudinary.com/daudl2cc3/image/upload/v1773833984/Brand_symbol_ocyzo3.png" />
+
+  <!-- ─── SEO Meta Tags ─── -->
   <meta name="description" content="Upload Smith is a powerful Express.js file upload middleware built on Multer. Supports AWS S3, Azure Blob Storage, Google Cloud Storage, Cloudinary, FTP, SFTP, image compression, and TypeScript. One config object. Zero boilerplate." />
   <meta name="keywords" content="express file upload, multer middleware, upload to s3, azure blob upload, google cloud storage upload, cloudinary upload, image compression node, file validation middleware, typescript upload middleware, nodejs file uploader, ftp upload, sftp upload, upload-smith" />
   <meta name="author" content="Manan Patel" />
   <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://patelmanan1612.github.io/upload-smith/" />
 
-  <!-- Open Graph -->
+  <!-- ─── Open Graph (shows preview image on WhatsApp, Telegram, LinkedIn, Slack, Twitter, iMessage, Discord etc.) ─── -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://patelmanan1612.github.io/upload-smith/" />
   <meta property="og:title" content="Upload Smith — Express.js File Upload Middleware" />
-  <meta property="og:description" content="One config object to handle AWS S3, Azure, GCS, Cloudinary, FTP, SFTP uploads with validation, compression & TypeScript support." />
-  <meta property="og:image" content="https://patelmanan1612.github.io/upload-smith/og-image.png" />
+  <meta property="og:description" content="One config object. AWS S3, Azure, GCS, Cloudinary, FTP, SFTP. TypeScript ready. Zero boilerplate." />
+  <meta property="og:image" content="https://res.cloudinary.com/daudl2cc3/image/upload/v1773833984/Brand_logo_with_tagline_yp2nhz.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:type" content="image/png" />
+  <meta property="og:site_name" content="Upload Smith" />
+  <meta property="og:locale" content="en_US" />
 
-  <!-- Twitter Card -->
+  <!-- ─── Twitter / X Card ─── -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Upload Smith — Express.js File Upload Middleware" />
   <meta name="twitter:description" content="One config object. AWS S3, Azure, GCS, Cloudinary, FTP, SFTP. TypeScript ready." />
+  <meta name="twitter:image" content="https://res.cloudinary.com/daudl2cc3/image/upload/v1773833984/Brand_logo_with_tagline_yp2nhz.png" />
 
   <!-- Schema.org Structured Data -->
   <script type="application/ld+json">
@@ -44,7 +55,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
-
   <style>
     :root {
       --bg: #0a0a0f;
@@ -80,7 +90,7 @@
       overflow-x: hidden;
     }
 
-    /* ─── NOISE OVERLAY ─── */
+    /* NOISE OVERLAY */
     body::before {
       content: '';
       position: fixed;
@@ -91,7 +101,6 @@
       opacity: 0.5;
     }
 
-    /* ─── NAV ─── */
     nav {
       position: fixed;
       top: 0; left: 0; right: 0;
@@ -153,7 +162,6 @@
     }
     .nav-cta:hover { opacity: 0.85 !important; }
 
-    /* ─── HERO ─── */
     .hero {
       min-height: 100vh;
       display: flex;
@@ -297,7 +305,6 @@
       background: var(--surface);
     }
 
-    /* ─── INSTALL STRIP ─── */
     .install-strip {
       display: inline-flex;
       align-items: center;
@@ -329,7 +336,6 @@
 
     .install-strip .copy-btn:hover { background: var(--surface-2); color: var(--text); }
 
-    /* ─── STATS BAR ─── */
     .stats-bar {
       display: flex;
       justify-content: center;
@@ -354,7 +360,6 @@
     .stat-num span { color: var(--accent); }
     .stat-label { font-size: 0.8rem; color: var(--text-muted); font-weight: 300; margin-top: 0.2rem; }
 
-    /* ─── SECTIONS ─── */
     section { padding: 6rem 2rem; max-width: 1200px; margin: 0 auto; }
 
     .section-label {
@@ -384,7 +389,6 @@
       margin-bottom: 3.5rem;
     }
 
-    /* ─── FEATURES GRID ─── */
     .features-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -442,7 +446,6 @@
       font-weight: 300;
     }
 
-    /* ─── PROVIDERS ─── */
     .providers-section { text-align: center; padding: 5rem 2rem; }
 
     .providers-grid {
@@ -480,7 +483,6 @@
       border-radius: 50%;
     }
 
-    /* ─── CODE SECTION ─── */
     .code-section {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -513,10 +515,7 @@
       background: var(--surface-2);
     }
 
-    .code-dot {
-      width: 10px; height: 10px;
-      border-radius: 50%;
-    }
+    .code-dot { width: 10px; height: 10px; border-radius: 50%; }
     .code-dot.red { background: #ff5f56; }
     .code-dot.yellow { background: #ffbd2e; }
     .code-dot.green { background: #27c93f; }
@@ -534,6 +533,7 @@
       font-size: 0.8rem;
       line-height: 1.7;
       overflow-x: auto;
+      white-space: pre;
     }
 
     .code-body .kw { color: #c792ea; }
@@ -544,18 +544,13 @@
     .code-body .prop { color: var(--accent); }
     .code-body .obj { color: #89ddff; }
 
-    /* ─── COMPARISON TABLE ─── */
     .comparison-wrapper {
       overflow-x: auto;
       border-radius: 12px;
       border: 1px solid var(--border);
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.875rem;
-    }
+    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
 
     thead tr {
       background: var(--surface-2);
@@ -572,11 +567,7 @@
     }
 
     th:first-child { color: var(--text); }
-
-    .th-highlight {
-      color: var(--accent) !important;
-      position: relative;
-    }
+    .th-highlight { color: var(--accent) !important; position: relative; }
 
     td {
       padding: 0.85rem 1.5rem;
@@ -585,9 +576,7 @@
     }
 
     td:first-child { color: var(--text); font-weight: 500; }
-
     tr:last-child td { border-bottom: none; }
-
     tr:hover td { background: var(--surface-2); }
 
     .check { color: #27c93f; font-size: 1rem; }
@@ -597,7 +586,6 @@
     td.highlight-col { background: var(--accent-dim2); }
     td.highlight-col .check { color: var(--accent); }
 
-    /* ─── CTA SECTION ─── */
     .cta-section {
       text-align: center;
       padding: 7rem 2rem;
@@ -618,32 +606,22 @@
     .cta-section h2 { font-size: clamp(2.5rem, 5vw, 4rem); margin-bottom: 1rem; }
     .cta-section p { color: var(--text-muted); font-size: 1.1rem; font-weight: 300; margin-bottom: 2.5rem; }
 
-    /* ─── FOOTER ─── */
     footer {
       border-top: 1px solid var(--border);
       padding: 3rem 2rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      flex-wrap: gap;
+      flex-wrap: wrap;
       max-width: 1200px;
       margin: 0 auto;
       gap: 1rem;
     }
 
-    .footer-left {
-      font-family: var(--font-display);
-      font-weight: 700;
-      font-size: 0.95rem;
-    }
-
+    .footer-left { font-family: var(--font-display); font-weight: 700; font-size: 0.95rem; }
     .footer-left span { color: var(--accent); }
 
-    .footer-links {
-      display: flex;
-      gap: 2rem;
-      list-style: none;
-    }
+    .footer-links { display: flex; gap: 2rem; list-style: none; }
 
     .footer-links a {
       color: var(--text-muted);
@@ -653,10 +631,8 @@
     }
 
     .footer-links a:hover { color: var(--text); }
-
     .footer-right { color: var(--text-muted); font-size: 0.8rem; }
 
-    /* ─── ANIMATIONS ─── */
     @keyframes fadeSlideDown {
       from { opacity: 0; transform: translateY(-12px); }
       to { opacity: 1; transform: translateY(0); }
@@ -667,12 +643,8 @@
       transform: translateY(24px);
       transition: opacity 0.6s ease, transform 0.6s ease;
     }
-    .reveal.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
 
-    /* ─── BADGE STRIP ─── */
     .badge-strip {
       display: flex;
       justify-content: center;
@@ -695,21 +667,16 @@
       color: var(--text-muted);
     }
 
-    /* ─── SCROLLBAR ─── */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: var(--bg); }
     ::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 3px; }
 
-    /* ─── SECTION DIVIDER ─── */
     .divider { border: none; border-top: 1px solid var(--border); margin: 0; }
-
-    /* Copy feedback */
     .copy-btn.copied { color: var(--accent) !important; }
   </style>
 </head>
 <body>
 
-  <!-- NAV -->
   <nav>
     <a href="#" class="nav-logo">
       <span class="logo-dot"></span>
@@ -725,22 +692,23 @@
     </ul>
   </nav>
 
-  <!-- HERO -->
   <div class="hero">
     <div class="hero-glow"></div>
     <div class="hero-glow-blue"></div>
     <div class="hero-glow-pink"></div>
 
-    <div class="hero-badge">v2.1.0 — now with FTP &amp; SFTP support</div>
+    <div class="hero-badge">v2.1.0 &mdash; now with FTP &amp; SFTP support</div>
 
     <h1>
       File uploads.<br/>
-      <span class="line-accent">Done right.</span><br/>
-      <span class="line-dim">Finally.</span>
+      <span class="line-accent">Done right.</span>
     </h1>
+    <h2 style="font-family:var(--font-display);font-weight:600;font-size:clamp(1.2rem,2.5vw,1.8rem);color:var(--text-muted);letter-spacing:-0.01em;margin-bottom:0;margin-top:0.5rem;">
+      <span class="line-dim">Make Uploads Effortless.</span>
+    </h2>
 
     <p class="hero-sub">
-      The <strong>Express.js upload middleware</strong> that handles AWS S3, Azure, GCS, Cloudinary, FTP &amp; SFTP — with validation, compression &amp; TypeScript in one clean config object.
+      The <strong>Express.js upload middleware</strong> that handles AWS S3, Azure, GCS, Cloudinary, FTP &amp; SFTP &mdash; with validation, compression &amp; TypeScript in one clean config object.
     </p>
 
     <div class="badge-strip">
@@ -752,10 +720,10 @@
 
     <div class="hero-actions">
       <a href="https://www.npmjs.com/package/upload-smith" target="_blank" rel="noopener" class="btn-primary">
-        ↗ View on npm
+        &rarr; View on npm
       </a>
       <a href="https://github.com/PatelManan1612/upload-smith" target="_blank" rel="noopener" class="btn-secondary">
-        ★ Star on GitHub
+        &#9733; Star on GitHub
       </a>
     </div>
 
@@ -765,7 +733,6 @@
     </div>
   </div>
 
-  <!-- STATS -->
   <div style="padding: 0 2rem;">
     <div class="stats-bar reveal">
       <div class="stat-item">
@@ -781,7 +748,7 @@
         <div class="stat-label">Boilerplate</div>
       </div>
       <div class="stat-item">
-        <span class="stat-num">∞</span>
+        <span class="stat-num">&infin;</span>
         <div class="stat-label">File Types</div>
       </div>
     </div>
@@ -789,7 +756,6 @@
 
   <hr class="divider" />
 
-  <!-- FEATURES -->
   <section id="features">
     <span class="section-label">Features</span>
     <h2>Everything you need.<br/>Nothing you don't.</h2>
@@ -797,47 +763,47 @@
 
     <div class="features-grid reveal">
       <div class="feature-card">
-        <div class="feature-icon yellow">☁️</div>
+        <div class="feature-icon yellow">&#9729;&#65039;</div>
         <h3>6 Cloud Providers</h3>
-        <p>AWS S3, Azure Blob, Google Cloud Storage, Cloudinary, FTP, and SFTP — all from one unified API.</p>
+        <p>AWS S3, Azure Blob, Google Cloud Storage, Cloudinary, FTP, and SFTP &mdash; all from one unified API.</p>
       </div>
       <div class="feature-card">
-        <div class="feature-icon blue">🔒</div>
+        <div class="feature-icon blue">&#128274;</div>
         <h3>Extension Validation</h3>
         <p>Whitelist exactly which file types are allowed per upload endpoint. Rejects everything else automatically.</p>
       </div>
       <div class="feature-card">
-        <div class="feature-icon pink">📏</div>
+        <div class="feature-icon pink">&#128207;</div>
         <h3>Per-Extension Size Limits</h3>
-        <p>Set different size caps for different file types — 5MB for images, 20MB for PDFs, 100MB for video.</p>
+        <p>Set different size caps for different file types &mdash; 5MB for images, 20MB for PDFs, 100MB for video.</p>
       </div>
       <div class="feature-card">
-        <div class="feature-icon yellow">🖼️</div>
+        <div class="feature-icon yellow">&#128444;&#65039;</div>
         <h3>Image Compression</h3>
         <p>Built-in Sharp integration compresses JPEG, PNG, WebP on the fly before uploading to cloud or disk.</p>
       </div>
       <div class="feature-card">
-        <div class="feature-icon blue">📥</div>
+        <div class="feature-icon blue">&#128229;</div>
         <h3>URL Import</h3>
         <p>Download and process files directly from URLs. Supports domain whitelisting and blacklisting for security.</p>
       </div>
       <div class="feature-card">
-        <div class="feature-icon pink">🧹</div>
+        <div class="feature-icon pink">&#129529;</div>
         <h3>Automatic Cleanup</h3>
         <p>Files are auto-deleted from both local disk and cloud storage when an error occurs. No orphaned files.</p>
       </div>
       <div class="feature-card">
-        <div class="feature-icon yellow">🔄</div>
+        <div class="feature-icon yellow">&#128260;</div>
         <h3>Partial Uploads</h3>
-        <p>When uploading multiple files, save the valid ones and reject invalid ones — with per-file rejection reasons.</p>
+        <p>When uploading multiple files, save the valid ones and reject invalid ones &mdash; with per-file rejection reasons.</p>
       </div>
       <div class="feature-card">
-        <div class="feature-icon blue">💪</div>
+        <div class="feature-icon blue">&#128170;</div>
         <h3>Full TypeScript Support</h3>
         <p>Complete type definitions included. Works seamlessly with both ESM and CommonJS projects.</p>
       </div>
       <div class="feature-card">
-        <div class="feature-icon pink">📁</div>
+        <div class="feature-icon pink">&#128193;</div>
         <h3>Smart Folder Organization</h3>
         <p>Organize uploads by extension, by category, or both. Keeps your storage clean and structured automatically.</p>
       </div>
@@ -846,7 +812,6 @@
 
   <hr class="divider" />
 
-  <!-- PROVIDERS -->
   <div class="providers-section reveal" id="providers">
     <span class="section-label">Providers</span>
     <h2>One package.<br/>Every cloud.</h2>
@@ -865,7 +830,6 @@
 
   <hr class="divider" />
 
-  <!-- QUICKSTART -->
   <section id="quickstart">
     <span class="section-label">Quickstart</span>
 
@@ -876,7 +840,7 @@
         <ul style="list-style:none;display:flex;flex-direction:column;gap:0.75rem;">
           <li style="display:flex;gap:0.75rem;align-items:flex-start;">
             <span style="color:var(--accent);font-family:var(--font-mono);font-size:0.8rem;padding-top:0.1rem;">01</span>
-            <span style="color:var(--text-muted);font-size:0.9rem;font-weight:300;">Choose your provider — AWS, Azure, GCS, Cloudinary, FTP or SFTP</span>
+            <span style="color:var(--text-muted);font-size:0.9rem;font-weight:300;">Choose your provider &mdash; AWS, Azure, GCS, Cloudinary, FTP or SFTP</span>
           </li>
           <li style="display:flex;gap:0.75rem;align-items:flex-start;">
             <span style="color:var(--accent);font-family:var(--font-mono);font-size:0.8rem;padding-top:0.1rem;">02</span>
@@ -888,7 +852,7 @@
           </li>
           <li style="display:flex;gap:0.75rem;align-items:flex-start;">
             <span style="color:var(--accent);font-family:var(--font-mono);font-size:0.8rem;padding-top:0.1rem;">04</span>
-            <span style="color:var(--text-muted);font-size:0.9rem;font-weight:300;">Read <code style="font-family:var(--font-mono);color:var(--text);font-size:0.85rem;">req.file.cloudUrl</code> — you're done ✓</span>
+            <span style="color:var(--text-muted);font-size:0.9rem;font-weight:300;">Read <code style="font-family:var(--font-mono);color:var(--text);font-size:0.85rem;">req.file.cloudUrl</code> &mdash; you're done &#10003;</span>
           </li>
         </ul>
       </div>
@@ -900,8 +864,7 @@
           <span class="code-dot green"></span>
           <span class="code-filename">upload.js</span>
         </div>
-        <div class="code-body">
-<span class="kw">import</span> <span class="obj">{</span> createUploader <span class="obj">}</span> <span class="kw">from</span> <span class="str">'upload-smith'</span>
+        <div class="code-body"><span class="kw">import</span> <span class="obj">{</span> createUploader <span class="obj">}</span> <span class="kw">from</span> <span class="str">'upload-smith'</span>
 
 <span class="kw">const</span> <span class="prop">uploader</span> = <span class="fn">createUploader</span>(<span class="obj">{</span>
   <span class="prop">fieldName</span>: <span class="str">'file'</span>,
@@ -927,22 +890,21 @@
 app.<span class="fn">post</span>(<span class="str">'/upload'</span>, uploader.<span class="fn">single</span>(), (req, res) <span class="kw">=&gt;</span> <span class="obj">{</span>
   res.<span class="fn">json</span>(<span class="obj">{</span> url: req.file.<span class="prop">publicUrl</span> <span class="obj">}</span>)
 <span class="obj">}</span>)
-        </div>
+</div>
       </div>
     </div>
   </section>
 
   <hr class="divider" />
 
-  <!-- STORAGE MODES -->
   <section>
     <span class="section-label">Storage Modes</span>
     <h2>Deploy anywhere.</h2>
-    <p class="section-sub">Three storage strategies to match any architecture — dev, prod, or hybrid.</p>
+    <p class="section-sub">Three storage strategies to match any architecture &mdash; dev, prod, or hybrid.</p>
 
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.5rem;" class="reveal">
       <div style="background:var(--surface);border:1px solid var(--border-bright);border-radius:12px;padding:2rem;">
-        <div style="font-size:1.5rem;margin-bottom:1rem;">💾</div>
+        <div style="font-size:1.5rem;margin-bottom:1rem;">&#128190;</div>
         <h3 style="font-family:var(--font-display);font-weight:700;margin-bottom:0.5rem;">Local Only</h3>
         <p style="color:var(--text-muted);font-size:0.875rem;font-weight:300;margin-bottom:1.5rem;">Files saved to disk. No cloud config needed. Perfect for development and simple apps.</p>
         <code style="font-family:var(--font-mono);font-size:0.75rem;color:var(--text-muted);">no cloudStorage config</code>
@@ -950,14 +912,14 @@ app.<span class="fn">post</span>(<span class="str">'/upload'</span>, uploader.<s
 
       <div style="background:var(--surface);border:1px solid var(--accent);border-radius:12px;padding:2rem;position:relative;">
         <div style="position:absolute;top:-1px;left:1.5rem;background:var(--accent);color:#000;font-family:var(--font-mono);font-size:0.65rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:0 0 6px 6px;">RECOMMENDED</div>
-        <div style="font-size:1.5rem;margin-bottom:1rem;">☁️</div>
+        <div style="font-size:1.5rem;margin-bottom:1rem;">&#9729;&#65039;</div>
         <h3 style="font-family:var(--font-display);font-weight:700;margin-bottom:0.5rem;">Cloud Only</h3>
         <p style="color:var(--text-muted);font-size:0.875rem;font-weight:300;margin-bottom:1.5rem;">Files go straight to cloud. No disk usage. Ideal for production and serverless deployments.</p>
         <code style="font-family:var(--font-mono);font-size:0.75rem;color:var(--accent);">keepLocalCopy: false</code>
       </div>
 
       <div style="background:var(--surface);border:1px solid var(--border-bright);border-radius:12px;padding:2rem;">
-        <div style="font-size:1.5rem;margin-bottom:1rem;">🔄</div>
+        <div style="font-size:1.5rem;margin-bottom:1rem;">&#128260;</div>
         <h3 style="font-family:var(--font-display);font-weight:700;margin-bottom:0.5rem;">Cloud + Local Copy</h3>
         <p style="color:var(--text-muted);font-size:0.875rem;font-weight:300;margin-bottom:1.5rem;">Uploads to cloud AND saves a local copy. Great for backups and migration periods.</p>
         <code style="font-family:var(--font-mono);font-size:0.75rem;color:var(--text-muted);">keepLocalCopy: true</code>
@@ -967,11 +929,10 @@ app.<span class="fn">post</span>(<span class="str">'/upload'</span>, uploader.<s
 
   <hr class="divider" />
 
-  <!-- COMPARISON TABLE -->
   <section id="compare">
     <span class="section-label">Comparison</span>
     <h2>Why not just<br/>use raw Multer?</h2>
-    <p class="section-sub">Multer is great — Upload Smith just removes the 200 lines you'd write around it.</p>
+    <p class="section-sub">Multer is great &mdash; Upload Smith just removes the 200 lines you'd write around it.</p>
 
     <div class="comparison-wrapper reveal">
       <table>
@@ -983,66 +944,18 @@ app.<span class="fn">post</span>(<span class="str">'/upload'</span>, uploader.<s
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>AWS S3 uploads</td>
-            <td><span class="partial">Manual SDK setup</span></td>
-            <td class="highlight-col"><span class="check">✓</span> Built-in</td>
-          </tr>
-          <tr>
-            <td>Azure Blob Storage</td>
-            <td><span class="cross">✗</span></td>
-            <td class="highlight-col"><span class="check">✓</span> Built-in</td>
-          </tr>
-          <tr>
-            <td>Google Cloud Storage</td>
-            <td><span class="cross">✗</span></td>
-            <td class="highlight-col"><span class="check">✓</span> Built-in</td>
-          </tr>
-          <tr>
-            <td>Cloudinary</td>
-            <td><span class="cross">✗</span></td>
-            <td class="highlight-col"><span class="check">✓</span> Built-in</td>
-          </tr>
-          <tr>
-            <td>FTP / SFTP</td>
-            <td><span class="cross">✗</span></td>
-            <td class="highlight-col"><span class="check">✓</span> Built-in</td>
-          </tr>
-          <tr>
-            <td>Extension validation</td>
-            <td><span class="partial">Manual fileFilter</span></td>
-            <td class="highlight-col"><span class="check">✓</span> Config option</td>
-          </tr>
-          <tr>
-            <td>Per-extension size limits</td>
-            <td><span class="cross">✗</span></td>
-            <td class="highlight-col"><span class="check">✓</span> Config option</td>
-          </tr>
-          <tr>
-            <td>Image compression</td>
-            <td><span class="cross">✗</span></td>
-            <td class="highlight-col"><span class="check">✓</span> Via Sharp</td>
-          </tr>
-          <tr>
-            <td>URL download support</td>
-            <td><span class="cross">✗</span></td>
-            <td class="highlight-col"><span class="check">✓</span> Built-in</td>
-          </tr>
-          <tr>
-            <td>Auto cleanup on error</td>
-            <td><span class="cross">✗</span></td>
-            <td class="highlight-col"><span class="check">✓</span> Default on</td>
-          </tr>
-          <tr>
-            <td>Partial multi-file uploads</td>
-            <td><span class="cross">✗</span></td>
-            <td class="highlight-col"><span class="check">✓</span> Config option</td>
-          </tr>
-          <tr>
-            <td>TypeScript definitions</td>
-            <td><span class="partial">@types/multer</span></td>
-            <td class="highlight-col"><span class="check">✓</span> Full types included</td>
-          </tr>
+          <tr><td>AWS S3 uploads</td><td><span class="partial">Manual SDK setup</span></td><td class="highlight-col"><span class="check">&#10003;</span> Built-in</td></tr>
+          <tr><td>Azure Blob Storage</td><td><span class="cross">&#10007;</span></td><td class="highlight-col"><span class="check">&#10003;</span> Built-in</td></tr>
+          <tr><td>Google Cloud Storage</td><td><span class="cross">&#10007;</span></td><td class="highlight-col"><span class="check">&#10003;</span> Built-in</td></tr>
+          <tr><td>Cloudinary</td><td><span class="cross">&#10007;</span></td><td class="highlight-col"><span class="check">&#10003;</span> Built-in</td></tr>
+          <tr><td>FTP / SFTP</td><td><span class="cross">&#10007;</span></td><td class="highlight-col"><span class="check">&#10003;</span> Built-in</td></tr>
+          <tr><td>Extension validation</td><td><span class="partial">Manual fileFilter</span></td><td class="highlight-col"><span class="check">&#10003;</span> Config option</td></tr>
+          <tr><td>Per-extension size limits</td><td><span class="cross">&#10007;</span></td><td class="highlight-col"><span class="check">&#10003;</span> Config option</td></tr>
+          <tr><td>Image compression</td><td><span class="cross">&#10007;</span></td><td class="highlight-col"><span class="check">&#10003;</span> Via Sharp</td></tr>
+          <tr><td>URL download support</td><td><span class="cross">&#10007;</span></td><td class="highlight-col"><span class="check">&#10003;</span> Built-in</td></tr>
+          <tr><td>Auto cleanup on error</td><td><span class="cross">&#10007;</span></td><td class="highlight-col"><span class="check">&#10003;</span> Default on</td></tr>
+          <tr><td>Partial multi-file uploads</td><td><span class="cross">&#10007;</span></td><td class="highlight-col"><span class="check">&#10003;</span> Config option</td></tr>
+          <tr><td>TypeScript definitions</td><td><span class="partial">@types/multer</span></td><td class="highlight-col"><span class="check">&#10003;</span> Full types included</td></tr>
         </tbody>
       </table>
     </div>
@@ -1050,7 +963,6 @@ app.<span class="fn">post</span>(<span class="str">'/upload'</span>, uploader.<s
 
   <hr class="divider" />
 
-  <!-- CTA -->
   <div class="cta-section reveal">
     <span class="section-label">Get Started</span>
     <h2>One install.<br/>Ship everything.</h2>
@@ -1058,18 +970,17 @@ app.<span class="fn">post</span>(<span class="str">'/upload'</span>, uploader.<s
 
     <div style="display:flex;justify-content:center;gap:1rem;flex-wrap:wrap;">
       <a href="https://www.npmjs.com/package/upload-smith" target="_blank" rel="noopener" class="btn-primary">
-        ↗ Install from npm
+        &rarr; Install from npm
       </a>
       <a href="https://github.com/PatelManan1612/upload-smith" target="_blank" rel="noopener" class="btn-secondary">
         Read the Docs
       </a>
       <a href="https://buymeacoffee.com/manan_patel" target="_blank" rel="noopener" class="btn-secondary">
-        ☕ Support the Author
+        &#9749; Support the Author
       </a>
     </div>
   </div>
 
-  <!-- FOOTER -->
   <footer>
     <div class="footer-left">upload-smith <span>v2.1.0</span></div>
     <ul class="footer-links">
@@ -1077,11 +988,10 @@ app.<span class="fn">post</span>(<span class="str">'/upload'</span>, uploader.<s
       <li><a href="https://github.com/PatelManan1612/upload-smith" target="_blank" rel="noopener">GitHub</a></li>
       <li><a href="https://buymeacoffee.com/manan_patel" target="_blank" rel="noopener">Buy Me a Coffee</a></li>
     </ul>
-    <div class="footer-right">MIT License · Made with ❤️ by Manan Patel</div>
+    <div class="footer-right">MIT License &middot; Made with &hearts; by Manan Patel</div>
   </footer>
 
   <script>
-    // Copy install command
     function copyInstall(btn) {
       navigator.clipboard.writeText('npm install upload-smith').then(() => {
         btn.textContent = 'copied!';
@@ -1093,16 +1003,12 @@ app.<span class="fn">post</span>(<span class="str">'/upload'</span>, uploader.<s
       });
     }
 
-    // Scroll reveal
     const reveals = document.querySelectorAll('.reveal');
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-        }
+        if (entry.isIntersecting) entry.target.classList.add('visible');
       });
     }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
-
     reveals.forEach(el => observer.observe(el));
   </script>
 </body>
