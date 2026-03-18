@@ -1,6 +1,7 @@
 {
   "builds": [
-    { "src": "index.html", "use": "@vercel/static" },
-     { "src": "sitemap.xml", "use": "@vercel/static" }
+    { "src": "sitemap.xml", "use": "@vercel/static" },
+    { "src": "/robots.txt", "dest": "/robots.txt" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
