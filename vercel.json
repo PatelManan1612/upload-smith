@@ -2,11 +2,13 @@
   "builds": [
     { "src": "index.html", "use": "@vercel/static" },
     { "src": "sitemap.xml", "use": "@vercel/static" },
-    { "src": "robots.txt", "use": "@vercel/static" }
+    { "src": "robots.txt", "use": "@vercel/static" },
+    { "src": "og-image.png", "use": "@vercel/static" }
   ],
   "routes": [
     { "src": "/sitemap.xml", "dest": "/sitemap.xml" },
     { "src": "/robots.txt", "dest": "/robots.txt" },
+    { "src": "/og-image.png", "dest": "/og-image.png" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
