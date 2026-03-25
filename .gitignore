@@ -1,3 +1,32 @@
 node_modules/
 dist/
 .env
+.DS_Store
+
+# Git
+.github/
+.vscode/
+*.log
+
+# Website
+website/node_modules/
+website/.next/
+website/out/
+website/build/
+website/.vercel/
+website/.env*
+website/*.pem
+website/npm-debug.log*
+website/yarn-debug.log*
+website/yarn-error.log*
+website/.pnpm-debug.log*
+website/*.tsbuildinfo
+website/next-env.d.ts
+website/coverage/
+website/.pnp
+website/.pnp.*
+website/.yarn/*
+!website/.yarn/patches
+!website/.yarn/plugins
+!website/.yarn/releases
+!website/.yarn/versions

@@ -1,5 +1,24 @@
+# Source and Node Modules
 /src
 /node_modules
+/website
 
+# Config Files
 tsconfig.cjs.json
 tsconfig.esm.json
+.vscode/
+.github/
+.gitignore
+.npmignore
+vercel.json
+
+# Tooling
+*.log
+
+# Documentation/Website files in root
+index.html
+og-image.png
+robots.txt
+sitemap.xml
+FUNDING.yml
+Changelog.md
